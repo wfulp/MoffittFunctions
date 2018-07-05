@@ -4,11 +4,11 @@ MoffittFunctions
 A collection of Moffitt functions for annotation, statistical calculations, data manipulation, etc.
 
 The first rule of MoffittFunctions: **We NEVER push to the master.**    
-Please use [pull requests](https://github.fhcrc.org/VIDD-VISC/SRA-Documentation/blob/master/Code-Documentation/pull-request-information.md).    
-[Click here for a brief summary on building and installing a package with RStudio.](https://github.fhcrc.org/VIDD-VISC/SRA-Documentation/blob/master/Code-Documentation/build_and_test_package.md)
+Please use [pull requests](https://gitlab.moffitt.usf.edu:8000/ReproducibleResearch/MoffittFunctions/blob/master/pull-request-information.md).    
+[Click here for a brief summary on building and installing a package with RStudio.]https://gitlab.moffitt.usf.edu:8000/ReproducibleResearch/MoffittFunctions/blob/master/build_and_test_package.md)
 
 
-Moffittfunctions Principles
+MoffittFunctions Principles
 =============
 
 1. Documentation
