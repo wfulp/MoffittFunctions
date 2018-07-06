@@ -196,7 +196,7 @@ two_samp_bin_test <- function(x, y, method = NA, alternative = c("two.sided", "l
 
 
 
-#' Correlation Test for Two Variables
+#' Correlation Test for Two Continuous Variables
 #'
 #' A wrapper for cor.test function, except if spearman selected and ties in at least one variable, in which case this is a wrapper for coin::spreaman_test in with approximate method.
 #'
