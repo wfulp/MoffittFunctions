@@ -9,7 +9,7 @@
 Statistical, data processing, and annotation functions for Moffitt Biostat.
 }
 \author{
-\strong{Maintainer}: Jimmy Fulp \email{william.fulp@moffitt.org}
+\strong{Maintainer}: Jimmy Fulp \email{William.Fulp@moffitt.org}
 
 Authors:
 \itemize{

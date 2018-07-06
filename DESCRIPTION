@@ -1,13 +1,13 @@
 Package: MoffittFunctions
-Type: Package
 Title: Moffitt Biostat Functions
-Version: 0.1
-Date: 2018-07-06
-Authors@R: c(person("Jimmy", "Fulp", ,"william.fulp@moffitt.org", c("aut", "cre")),
-             person("Ram", "Thapa", ,"Ram.Thapa@moffitt.org", "aut")
+Version: 0.1.0
+Authors@R: c(person("Jimmy", "Fulp",  email = "William.Fulp@moffitt.org", role = c("aut", "cre")),
+             person("Ram", "Thapa",  email = "Ram.Thapa@moffitt.org", role = "aut")
              )
+Authors: William (Jimmy) Fulp, Ram Thapa
 Description: Statistical, data processing, and annotation functions for Moffitt Biostat.
 License: GPL-3
+LazyData: true
 Imports: knitr, devtools, data.table, kableExtra, coin, Exact
 Suggests: testthat
 RoxygenNote: 6.0.1
