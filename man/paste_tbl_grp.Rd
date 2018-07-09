@@ -58,11 +58,16 @@ descriptive_stats_by_group <- exampleData_BAMA[, .(
      Group1_max = max(magnitude[group == 1]), Group2_max = max(magnitude[group == 2])
 ), by = .(visitno,antigen)]
 
-paste_tbl_grp(data = descriptive_stats_by_group, vars_to_paste = 'all', first_name = 'Group1', second_name = 'Group2', sep_val = " vs. ", digits = 0, keep_all = TRUE)
+paste_tbl_grp(data = descriptive_stats_by_group, vars_to_paste = 'all', 
+   first_name = 'Group1', second_name = 'Group2', 
+   sep_val = " vs. ", digits = 0, keep_all = TRUE)
 
-paste_tbl_grp(data = descriptive_stats_by_group, vars_to_paste = c("mean", "median_min_max"), alternative= "less", keep_all = FALSE)
+paste_tbl_grp(data = descriptive_stats_by_group, vars_to_paste = c("mean", "median_min_max"), 
+   alternative= "less", keep_all = FALSE)
 
-paste_tbl_grp(data = descriptive_stats_by_group, vars_to_paste = 'all', first_name = 'Group1', second_name = 'Group2', sep_val = " vs. ", alternative = 'less', digits = 5, keep_all = FALSE)
+paste_tbl_grp(data = descriptive_stats_by_group, vars_to_paste = 'all', 
+   first_name = 'Group1', second_name = 'Group2', sep_val = " vs. ", 
+   alternative = 'less', digits = 5, keep_all = FALSE)
 
 
 # Same example wit tidyverse (dplyr+tidyr) with some custom functions

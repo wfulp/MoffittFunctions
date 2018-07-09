@@ -2,7 +2,7 @@
 % Please edit documentation in R/statistical_tests_and_estimates.R
 \name{cor_test}
 \alias{cor_test}
-\title{Correlation Test for Two Variables}
+\title{Correlation Test for Two Continuous Variables}
 \usage{
 cor_test(x, y, method = c("pearson", "kendall", "spearman"),
   seed = 68954857, B = 10000, exact = TRUE, verbose = FALSE)
