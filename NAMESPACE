@@ -2,6 +2,7 @@
 
 export(cor_test)
 export(paste_tbl_grp)
+export(pretty_model_output)
 export(pretty_pvalues)
 export(round_away_0)
 export(stat_paste)

@@ -342,3 +342,96 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
   pvalues_new
 }
 
+
+
+
+#' Fancy Table Output of Linear, Logistic, and Cox Models
+#' 
+#' pretty_model_output() takes a Linear, Logistic, and Cox model fit object and calculate estimates, odds ratios, or hazard ratios, respectively, with confidence intervals. P values are also produced. For categorical variables with 3+ levels overall Type 3 p values are calculated.
+#'
+#' @param model_fit lm, glm, or coxph fit (currently only tested on logistic glm fit)
+#' @param model_data dataset used to create model fits. Used for capturing variable labels, if they exist
+#' @param est_digits number of digits to round OR or HR to
+#' @param p_digits number of digits to round p values
+#' @param est_name Name to call the estimate variable
+#' @param sig_alpha the defined significance level. Default = 0.05
+#' 
+#' @examples
+#' 
+#' # Basic linear model example
+#' set.seed(542542522)
+#' y <- rnorm(100)
+#' x1 <- rnorm(100)
+#' x2 <- y + rnorm(100)
+#' x3 <- factor(sample(letters[1:4],100,replace = TRUE))
+#' my_model_data <- data.frame(y, x1, x2, x3)
+#' my_model_fit <- lm(y ~ x1 + x2 + x3, data = my_model_data)
+#' my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data, est_digits = 3, p_digits = 4, est_name = 'Est')
+#' 
+#' # Printing of Fancy table in Latex
+#' kableExtra::kable(my_pretty_model_output %>% select(-line_ind), 
+#'                   'latex', escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Fig') %>% 
+#'   kableExtra::row_spec(which(my_pretty_model_output$line_ind), hline_after = T)  %>% 
+#'   kableExtra::kable_styling(font_size = 9) %>% 
+#'   kableExtra::footnote(number = c('Model predicting y', paste0('Model sample size is n=',nrow(my_model_fit$model))))
+#' 
+#' 
+#' @export
+
+
+pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits = 4, est_name = c('Est','OR','HR'), sig_alpha = 0.05) {
+  est_name <- match.arg(est_name)
+  exp_output <- !any(class(model_fit) %in% c('lm'))
+  
+  #Using Variable labels for output, is no label using variable name
+  var_names <- all.vars(model_fit$terms)[-1]
+  var_labels <- Hmisc::label(model_data)[var_names]
+  if (any(var_labels == ''))
+    var_labels[var_labels == ''] <- gsub('_', ' ', var_names[var_labels == ''])
+  
+  all_levels = model_fit$xlevels %>% tibble::enframe() %>% unnest() %>%
+    mutate(variable = paste0(name, value))
+  
+  neat_fit = model_fit %>% broom::tidy(conf.int = TRUE, exponentiate = exp_output) %>%
+    mutate(p.label = pretty_pvalues(p.value, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = 'yellow')) %>%
+    select(variable = term, est = estimate, p.label, p.value, conf.low, conf.high) %>%
+    filter(variable != "(Intercept)")
+  
+  neat_fit <- full_join( all_levels, neat_fit, by = "variable") %>%
+    mutate(
+      name = ifelse(is.na(name), variable, name),
+      est.label = ifelse(is.na(est), "1.0 (Reference)",
+                         stat_paste(est, conf.low, conf.high, digits = est_digits, trailing_zeros = TRUE)),
+      p.label = ifelse(is.na(p.label), '-', p.label),
+      value = ifelse(is.na(value), '', value)
+    ) %>%
+    select(Variable_all = name, Level = value, Est_CI = est.label, `P Value` = p.label) %>%
+    arrange(factor(Variable_all, levels = var_names)) %>% 
+    rename(!!paste0(est_name, ' (95\\% CI)') := Est_CI)
+  
+  # Dropping extra variable names
+  neat_fit <- neat_fit %>%
+    mutate(Variable_sub = ifelse(duplicated(Variable_all), '', Variable_all),
+           Variable = ifelse(Variable_sub == '', '', var_labels[match(Variable_sub,var_names)]))
+  
+  ## Type III Overall variable tests
+  
+  # Getting which vars we need overall tests for
+  overall_vars_needed <- neat_fit %>% group_by(Variable_all) %>% summarise(run_var = n() > 2)
+  
+  if (any(overall_vars_needed$run_var)) {
+    type3_tests <- full_join(broom::tidy(car::Anova(model_fit, type = 'III', test.statistic = 'Wald')),
+                             overall_vars_needed, by = c('term' = 'Variable_all')) %>%
+      filter(term != "(Intercept)" & run_var) %>%
+      mutate(overall.p.label = pretty_pvalues(p.value, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = 'yellow')) %>%
+      select(variable = term, `Overall P Value` = overall.p.label)
+    
+    neat_fit <- full_join(neat_fit, type3_tests, by = c("Variable_sub" = "variable")) %>%
+      mutate(`Overall P Value` = ifelse(is.na(`Overall P Value`), '', `Overall P Value`))
+  }
+  
+  neat_fit  %>% group_by(Variable_all) %>%
+    mutate(line_ind = seq_len(n()) == n()) %>% ungroup() %>%
+    select(Variable, Level, contains('CI'), contains('P Value'), line_ind)
+  
+}

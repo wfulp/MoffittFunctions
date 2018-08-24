@@ -8,6 +8,6 @@ Authors: William (Jimmy) Fulp, Ram Thapa
 Description: Statistical, data processing, and annotation functions for Moffitt Biostat.
 License: GPL-3
 LazyData: true
-Imports: knitr, devtools, data.table, kableExtra, coin, Exact
+Imports: knitr, Hmisc, kableExtra, coin, car, Exact, dplyr, broom, tibble
 Suggests: testthat
 RoxygenNote: 6.0.1
