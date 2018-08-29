@@ -355,6 +355,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @param p_digits number of digits to round p values
 #' @param est_name Name to call the estimate variable
 #' @param sig_alpha the defined significance level. Default = 0.05
+#' @param overall_p_test_stat "Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova
 #' 
 #' @examples
 #' 
@@ -379,12 +380,15 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @export
 
 
-pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits = 4, est_name = c('Est','OR','HR'), sig_alpha = 0.05) {
+pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits = 4, est_name = c('Est','OR','HR'), sig_alpha = 0.05, overall_p_test_stat = c('Wald', 'LR')) {
   est_name <- match.arg(est_name)
+  overall_p_test_stat <- match.arg(overall_p_test_stat)
   exp_output <- !any(class(model_fit) %in% c('lm'))
   
   #Using Variable labels for output, is no label using variable name
   var_names <- all.vars(model_fit$terms)[-1]
+  if (!all(var_names %in% colnames(model_data)))
+    stop('All variables used in the "model_fit" must be in the "model_data" dataset')
   var_labels <- Hmisc::label(model_data)[var_names]
   if (any(var_labels == ''))
     var_labels[var_labels == ''] <- gsub('_', ' ', var_names[var_labels == ''])
@@ -420,7 +424,7 @@ pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits 
   overall_vars_needed <- neat_fit %>% group_by(Variable_all) %>% summarise(run_var = n() > 2)
   
   if (any(overall_vars_needed$run_var)) {
-    type3_tests <- full_join(broom::tidy(car::Anova(model_fit, type = 'III', test.statistic = 'Wald')),
+    type3_tests <- full_join(broom::tidy(car::Anova(model_fit, type = 'III', test.statistic = overall_p_test_stat)),
                              overall_vars_needed, by = c('term' = 'Variable_all')) %>%
       filter(term != "(Intercept)" & run_var) %>%
       mutate(overall.p.label = pretty_pvalues(p.value, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = 'yellow')) %>%
