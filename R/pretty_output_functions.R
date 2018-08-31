@@ -383,7 +383,12 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits = 4, est_name = c('Est','OR','HR'), sig_alpha = 0.05, overall_p_test_stat = c('Wald', 'LR')) {
   est_name <- match.arg(est_name)
   overall_p_test_stat <- match.arg(overall_p_test_stat)
-  exp_output <- !any(class(model_fit) %in% c('lm'))
+  
+  if (any(class(model_fit) == 'glm')) {
+    exp_output <- model_fit$family == 'binomial'
+  } else {
+    exp_output <- any(class(model_fit) == 'coxph')
+  }
   
   #Using Variable labels for output, is no label using variable name
   var_names <- all.vars(model_fit$terms)[-1]
