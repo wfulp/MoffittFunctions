@@ -393,21 +393,36 @@ pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits 
   if (any(var_labels == ''))
     var_labels[var_labels == ''] <- gsub('_', ' ', var_names[var_labels == ''])
   
-  all_levels = model_fit$xlevels %>% tibble::enframe() %>% unnest() %>%
-    mutate(variable = paste0(name, value))
-  
+ 
   neat_fit = model_fit %>% broom::tidy(conf.int = TRUE, exponentiate = exp_output) %>%
     mutate(p.label = pretty_pvalues(p.value, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = 'yellow')) %>%
     select(variable = term, est = estimate, p.label, p.value, conf.low, conf.high) %>%
     filter(variable != "(Intercept)")
   
-  neat_fit <- full_join( all_levels, neat_fit, by = "variable") %>%
+  
+  if (length(model_fit$xlevels) > 0) {
+    all_levels = model_fit$xlevels %>% tibble::enframe() %>% unnest() %>%
+      mutate(variable = paste0(name, value))
+    
+    neat_fit <- full_join( all_levels, neat_fit, by = "variable") %>%
+      mutate(
+        name = ifelse(is.na(name), variable, name),
+        value = ifelse(is.na(value), '', value)
+      )
+  } else {
+    neat_fit <- neat_fit %>%
+      mutate(
+        name = variable,
+        value = ''
+      )
+    
+  }
+  
+  neat_fit <- neat_fit %>%
     mutate(
-      name = ifelse(is.na(name), variable, name),
       est.label = ifelse(is.na(est), "1.0 (Reference)",
                          stat_paste(est, conf.low, conf.high, digits = est_digits, trailing_zeros = TRUE)),
       p.label = ifelse(is.na(p.label), '-', p.label),
-      value = ifelse(is.na(value), '', value)
     ) %>%
     select(Variable_all = name, Level = value, Est_CI = est.label, `P Value` = p.label) %>%
     arrange(factor(Variable_all, levels = var_names)) %>% 
