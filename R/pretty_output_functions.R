@@ -385,7 +385,7 @@ pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits 
   overall_p_test_stat <- match.arg(overall_p_test_stat)
   
   if (any(class(model_fit) == 'glm')) {
-    exp_output <- model_fit$family == 'binomial'
+    exp_output <- model_fit$family$family %in% c('binomial', 'quasibinomial')
   } else {
     exp_output <- any(class(model_fit) == 'coxph')
   }
