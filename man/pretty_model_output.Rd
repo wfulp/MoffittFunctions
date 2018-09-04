@@ -6,7 +6,7 @@
 \usage{
 pretty_model_output(model_fit, model_data, est_digits = 3, p_digits = 4,
   est_name = c("Est", "OR", "HR"), sig_alpha = 0.05,
-  overall_p_test_stat = c("Wald", "LR"))
+  background = "yellow", overall_p_test_stat = c("Wald", "LR"), ...)
 }
 \arguments{
 \item{model_fit}{lm, glm, or coxph fit (currently only tested on logistic glm fit)}
@@ -21,7 +21,11 @@ pretty_model_output(model_fit, model_data, est_digits = 3, p_digits = 4,
 
 \item{sig_alpha}{the defined significance level. Default = 0.05}
 
+\item{background}{background color of significant values, or no highlighting if NULL. Default is "yellow"}
+
 \item{overall_p_test_stat}{"Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova}
+
+\item{...}{other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})}
 }
 \description{
 pretty_model_output() takes a Linear, Logistic, and Cox model fit object and calculate estimates, odds ratios, or hazard ratios, respectively, with confidence intervals. P values are also produced. For categorical variables with 3+ levels overall Type 3 p values are calculated.

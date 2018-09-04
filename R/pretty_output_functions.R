@@ -355,7 +355,9 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @param p_digits number of digits to round p values
 #' @param est_name Name to call the estimate variable
 #' @param sig_alpha the defined significance level. Default = 0.05
+#' @param background background color of significant values, or no highlighting if NULL. Default is "yellow"
 #' @param overall_p_test_stat "Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova
+#' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})
 #' 
 #' @examples
 #' 
@@ -380,7 +382,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @export
 
 
-pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits = 4, est_name = c('Est','OR','HR'), sig_alpha = 0.05, overall_p_test_stat = c('Wald', 'LR')) {
+pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits = 4, est_name = c('Est','OR','HR'), sig_alpha = 0.05, background = 'yellow', overall_p_test_stat = c('Wald', 'LR'), ...) {
   est_name <- match.arg(est_name)
   overall_p_test_stat <- match.arg(overall_p_test_stat)
   
@@ -400,7 +402,7 @@ pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits 
   
  
   neat_fit = model_fit %>% broom::tidy(conf.int = TRUE, exponentiate = exp_output) %>%
-    mutate(p.label = pretty_pvalues(p.value, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = 'yellow')) %>%
+    mutate(p.label = pretty_pvalues(p.value, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = background, ...)) %>%
     select(variable = term, est = estimate, p.label, p.value, conf.low, conf.high) %>%
     filter(variable != "(Intercept)")
   
@@ -447,7 +449,7 @@ pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits 
     type3_tests <- full_join(broom::tidy(car::Anova(model_fit, type = 'III', test.statistic = overall_p_test_stat)),
                              overall_vars_needed, by = c('term' = 'Variable_all')) %>%
       filter(term != "(Intercept)" & run_var) %>%
-      mutate(overall.p.label = pretty_pvalues(p.value, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = 'yellow')) %>%
+      mutate(overall.p.label = pretty_pvalues(p.value, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = background, ...)) %>%
       select(variable = term, `Overall P Value` = overall.p.label)
     
     neat_fit <- full_join(neat_fit, type3_tests, by = c("Variable_sub" = "variable")) %>%
