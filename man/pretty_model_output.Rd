@@ -4,9 +4,9 @@
 \alias{pretty_model_output}
 \title{Fancy Table Output of Linear, Logistic, and Cox Models}
 \usage{
-pretty_model_output(model_fit, model_data, est_digits = 3, p_digits = 4,
-  est_name = c("Est", "OR", "HR"), sig_alpha = 0.05,
-  background = "yellow", overall_p_test_stat = c("Wald", "LR"), ...)
+pretty_model_output(model_fit, model_data, est_digits = 3,
+  p_digits = 4, sig_alpha = 0.05, background = "yellow",
+  overall_p_test_stat = c("Wald", "LR"), ...)
 }
 \arguments{
 \item{model_fit}{lm, glm, or coxph fit (currently only tested on logistic glm fit)}
@@ -16,8 +16,6 @@ pretty_model_output(model_fit, model_data, est_digits = 3, p_digits = 4,
 \item{est_digits}{number of digits to round OR or HR to}
 
 \item{p_digits}{number of digits to round p values}
-
-\item{est_name}{Name to call the estimate variable}
 
 \item{sig_alpha}{the defined significance level. Default = 0.05}
 
@@ -34,13 +32,24 @@ pretty_model_output() takes a Linear, Logistic, and Cox model fit object and cal
 
 # Basic linear model example
 set.seed(542542522)
-y <- rnorm(100)
+y_bin <- sample(0:1, 100, replace = TRUE)
+y <- rnorm(100,20)
 x1 <- rnorm(100)
 x2 <- y + rnorm(100)
 x3 <- factor(sample(letters[1:4],100,replace = TRUE))
-my_model_data <- data.frame(y, x1, x2, x3)
+my_model_data <- data.frame(y, y_bin, x1, x2, x3)
+
+# Linear Regression
 my_model_fit <- lm(y ~ x1 + x2 + x3, data = my_model_data)
-my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data, est_digits = 3, p_digits = 4, est_name = 'Est')
+my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
+
+# Logistic Regression
+my_model_fit <- glm(y_bin ~ x1 + x2 + x3, data = my_model_data, family = binomial(link = "logit"))
+my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
+
+# Coxph Regression
+my_model_fit <- survival::coxph(survival::Surv(y, y_bin) ~ x1 + x2 + x3, data = my_model_data)
+my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
 
 # Printing of Fancy table in Latex
 kableExtra::kable(my_pretty_model_output \%>\% select(-line_ind), 

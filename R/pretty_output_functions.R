@@ -353,7 +353,6 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @param model_data dataset used to create model fits. Used for capturing variable labels, if they exist
 #' @param est_digits number of digits to round OR or HR to
 #' @param p_digits number of digits to round p values
-#' @param est_name Name to call the estimate variable
 #' @param sig_alpha the defined significance level. Default = 0.05
 #' @param background background color of significant values, or no highlighting if NULL. Default is "yellow"
 #' @param overall_p_test_stat "Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova
@@ -363,13 +362,24 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' 
 #' # Basic linear model example
 #' set.seed(542542522)
-#' y <- rnorm(100)
+#' y_bin <- sample(0:1, 100, replace = TRUE)
+#' y <- rnorm(100,20)
 #' x1 <- rnorm(100)
 #' x2 <- y + rnorm(100)
 #' x3 <- factor(sample(letters[1:4],100,replace = TRUE))
-#' my_model_data <- data.frame(y, x1, x2, x3)
+#' my_model_data <- data.frame(y, y_bin, x1, x2, x3)
+#' 
+#' # Linear Regression
 #' my_model_fit <- lm(y ~ x1 + x2 + x3, data = my_model_data)
-#' my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data, est_digits = 3, p_digits = 4, est_name = 'Est')
+#' my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
+#' 
+#' # Logistic Regression
+#' my_model_fit <- glm(y_bin ~ x1 + x2 + x3, data = my_model_data, family = binomial(link = "logit"))
+#' my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
+#' 
+#' # Coxph Regression
+#' my_model_fit <- survival::coxph(survival::Surv(y, y_bin) ~ x1 + x2 + x3, data = my_model_data)
+#' my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
 #' 
 #' # Printing of Fancy table in Latex
 #' kableExtra::kable(my_pretty_model_output %>% select(-line_ind), 
@@ -382,16 +392,23 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @export
 
 
-pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits = 4, est_name = c('Est','OR','HR'), sig_alpha = 0.05, background = 'yellow', overall_p_test_stat = c('Wald', 'LR'), ...) {
-  est_name <- match.arg(est_name)
+pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits = 4, sig_alpha = 0.05, background = 'yellow', overall_p_test_stat = c('Wald', 'LR'), ...) {
   overall_p_test_stat <- match.arg(overall_p_test_stat)
-  
-  if (any(class(model_fit) == 'glm')) {
-    exp_output <- model_fit$family$family %in% c('binomial', 'quasibinomial')
+
+  if (any(class(model_fit) == 'glm') && model_fit$family$family %in% c('binomial', 'quasibinomial')) {
+    # Logistic Regression
+    exp_output <- TRUE
+    est_name <- 'OR'
+  } else if (any(class(model_fit) == 'coxph')) {
+    # Coxph Regression
+    exp_output <- TRUE
+    est_name <- 'HR'
   } else {
-    exp_output <- any(class(model_fit) == 'coxph')
-  }
-  
+    # Not Logistic Regression or Coxph
+    exp_output <- FALSE
+    est_name <- 'Est'
+  } 
+
   #Using Variable labels for output, is no label using variable name
   var_names <- all.vars(model_fit$terms)[-1]
   if (!all(var_names %in% colnames(model_data)))
