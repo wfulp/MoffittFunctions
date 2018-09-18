@@ -1,6 +1,6 @@
 Package: MoffittFunctions
 Title: Moffitt Biostat Functions
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(person("Jimmy", "Fulp",  email = "William.Fulp@moffitt.org", role = c("aut", "cre")),
              person("Ram", "Thapa",  email = "Ram.Thapa@moffitt.org", role = "aut")
              )
@@ -10,4 +10,4 @@ License: GPL-3
 LazyData: true
 Imports: knitr, Hmisc, kableExtra, coin, car, Exact, dplyr, broom (>= 0.5.0), tibble
 Suggests: testthat
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
