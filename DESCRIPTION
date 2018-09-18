@@ -11,3 +11,4 @@ LazyData: true
 Imports: knitr, Hmisc, kableExtra, coin, car, Exact, dplyr, broom (>= 0.5.0), tibble
 Suggests: testthat
 RoxygenNote: 6.1.0
+Encoding: UTF-8
