@@ -1,4 +1,6 @@
 #' Checking Numeric Vector Input
+#' 
+#' @noRd
 #'
 #' @param x numeric vector (can include NA values).
 #' @param lower_bound numeric value indicating the lowest allowed value.
@@ -27,6 +29,8 @@
 
 
 #' Checking Binary Vector Input
+#' 
+#' @noRd
 #'
 #' @param x binary vector (can include NA values)
 #' @param paired a logical indicating whether to add paired testing checking
@@ -50,6 +54,8 @@
 }
 
 #' Checking Response Vector Input
+#' 
+#' @noRd
 #'
 #' @param x response vector either 0/1 numeric or F/T logical values (can include NA values)
 #'

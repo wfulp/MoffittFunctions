@@ -48,7 +48,9 @@ round_away_0 <- function(x, digits = 0, trailing_zeros = FALSE){
 #' Wrapper for round_away_0 to account for non-numeric values
 #'
 #' Internal wrapper for round_away_0
-#'
+#' 
+#' @noRd
+#' 
 #' @param x vector (can include NA values).
 #' @param digits positive integer of length 1 between 0 and 14, giving the amount of digits to round to.
 #' @param trailing_zeros logical indicating if trailing zeros should included (i.e. 0.100 instead of 0.1). Note is set to TRUE output is a character vector

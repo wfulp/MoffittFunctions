@@ -1,4 +1,6 @@
 #' Combining Two Vectors, Removing Completely Missing Rows, with P Value Returns in Certain Cases
+#' 
+#' @noRd
 #'
 #' @param x numeric vector (can include NA values).
 #' @param y numeric vector (can include NA values).
