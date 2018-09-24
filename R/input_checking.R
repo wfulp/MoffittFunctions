@@ -29,6 +29,7 @@
 }
 
 
+
 #' Checking Binary Vector Input
 #' 
 #' @noRd
