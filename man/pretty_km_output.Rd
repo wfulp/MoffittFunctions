@@ -45,6 +45,7 @@ my_fit_y2 <- survival::survfit(survival::Surv(y, y_bin2) ~ 1)
 
 pretty_km_output(fit = my_fit3, time = c(5,10), title = 'Overall Fit')
 
+library(dplyr) 
 km_info <- bind_rows(
   pretty_km_output(fit = my_fit, time = c(5,10), group_name = 'Overall', title = 'Overall Survival (y_bin)'),
   pretty_km_output(fit = my_fit2, time = c(5,10), group_name = NULL, title = 'Overall Survival (y_bin)'),

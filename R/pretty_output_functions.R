@@ -379,6 +379,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' 
 #' pretty_km_output(fit = my_fit3, time = c(5,10), title = 'Overall Fit')
 #' 
+#' library(dplyr) 
 #' km_info <- bind_rows(
 #'   pretty_km_output(fit = my_fit, time = c(5,10), group_name = 'Overall', title = 'Overall Survival (y_bin)'),
 #'   pretty_km_output(fit = my_fit2, time = c(5,10), group_name = NULL, title = 'Overall Survival (y_bin)'),
@@ -442,9 +443,9 @@ pretty_km_output <- function(fit, time = NULL, group_name = NULL, title = NULL, 
  
   if (!is.null(fit$strata)) {
     # Need to bring back all levels in case  summary(fit,time = time) didn't cantain all levels
-    tmp_levels = tibble::tibble(Level = substr(unique(summary(fit)$strata),
-                                               regexpr('=', unique(summary(fit)$strata)) + 1,
-                                               nchar(as.vector(unique(summary(fit)$strata)))))
+    tmp_levels = tibble::tibble(Level = substr(names(fit$strata),
+                                               regexpr('=',  names(fit$strata)) + 1,
+                                               nchar( names(fit$strata))))
     if (!is.null(time)) {
       tmp_surv_est_info <- full_join(tmp_levels, tmp_surv_est_info, by = 'Level') %>% 
       replace(., is.na(.), 'N.E.')
