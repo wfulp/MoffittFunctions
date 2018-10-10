@@ -305,7 +305,6 @@ stat_paste = function(stat1, stat2 = NULL, stat3 = NULL, digits = 0, trailing_ze
 #' pretty_pvals <- pretty_pvalues(raw_pvals , digits = 3, background = "green", italic = TRUE, bold = TRUE)
 #' kableExtra::kable(pretty_pvals , format = "latex", escape = FALSE, col.names = c("P-values"))
 #'
-#' @import kableExtra
 #' @export
 
 
@@ -337,8 +336,137 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
   if (include_p) pvalues_new <- ifelse(pvalues_new < lower_cutoff, paste0('p',  pvalues_new), paste0('p=',  pvalues_new))
 
   # formatting
-  if (bold == TRUE | italic == TRUE | !is.null(background)) pvalues_new[sig_p] = cell_spec(pvalues_new[sig_p], format = "latex", bold = bold, italic = italic, background = background, escape = FALSE)
+  if (bold == TRUE | italic == TRUE | !is.null(background)) pvalues_new[sig_p] = kableExtra::cell_spec(pvalues_new[sig_p], format = "latex", bold = bold, italic = italic, background = background, escape = FALSE)
 
   pvalues_new
 }
 
+
+
+
+
+
+#' Fancy Table Output of KM (survfit) Fit
+#' 
+#' This function takes a Kaplan-Meier model fit object (from survival::survfit) and calculate survival estimates at a specified time, and Median Survival Estimates. This can be performed on an overall KM fit or a fit including a categorical variable (strata).
+#'
+#' @param fit survfit object (with or without single strata variable)
+#' @param time numerical vector of time estimates. If NULL (default) no time estimates are calculated
+#' @param group_name strata variable name. If NULL and strata exists then using variable
+#' @param title title to use
+#' @param surv_est_digits number of digits to round p values for survival estimates for specified times
+#' @param median_est_digits number of digits to round p values for Median Survival Estimates
+#' 
+#' @details 
+#' Currently works with multiple categorical variables used in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} columns may be off.
+#' 
+#' @return
+#' A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
+#' 
+#' @examples
+#' 
+#' # Basic linear model example
+#' set.seed(542542522)
+#' y_bin <- sample(0:1, 100, replace = TRUE)
+#' y_bin2 <- sample(0:1, 100, replace = TRUE)
+#' y <- rexp(100,.1)
+#' x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
+#' x2 <- factor(sample(letters[1:4],100,replace = TRUE))
+#' my_fit <- survival::survfit(survival::Surv(y, y_bin) ~ 1)
+#' my_fit2 <- survival::survfit(survival::Surv(y, y_bin) ~ x1)
+#' my_fit3 <- survival::survfit(survival::Surv(y, y_bin) ~ x2)
+#' my_fit_y2 <- survival::survfit(survival::Surv(y, y_bin2) ~ 1)
+#' 
+#' pretty_km_output(fit = my_fit3, time = c(5,10), title = 'Overall Fit')
+#' 
+#' km_info <- bind_rows(
+#'   pretty_km_output(fit = my_fit, time = c(5,10), group_name = 'Overall', title = 'Overall Survival (y_bin)'),
+#'   pretty_km_output(fit = my_fit2, time = c(5,10), group_name = NULL, title = 'Overall Survival (y_bin)'),
+#'   pretty_km_output(fit = my_fit3, time = c(5,10), group_name = 'x2', title = 'Overall Survival (y_bin)'),
+#'   pretty_km_output(fit = my_fit_y2, time = c(5,10), group_name = 'Overall', title = 'Overall Survival (y_bin2)'),
+#' ) %>% select(Name, Group, Level, everything())
+#' 
+#' library(kableExtra)
+#' options(knitr.kable.NA = '')
+#' kable(km_info, escape = T, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') %>% 
+#'   collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2) %>% 
+#'   kable_styling(font_size = 8.5) %>% 
+#'   footnote(number = c('Kaplan–Meier Survival Percentage Estimates at 5 or 10 years, with 95% Confidence Intervals'))
+#' 
+#' @importFrom  dplyr %>%
+#' @importFrom tibble tibble
+#' 
+#' @export
+
+pretty_km_output <- function(fit, time = NULL, group_name = NULL, title = NULL, surv_est_digits = 1, median_est_digits = 2){
+  # Input Checking
+  if (!is.null(time)) {
+    # Want to make sure time > 0
+    .check_numeric_input(time, lower_bound = 1e-50)
+    if (any(time > max(fit$time, na.rm = TRUE))) 
+      stop("At least one value of 'time' estimate is higher than the largest time value in 'fit' object.")
+  }
+  .check_numeric_input(surv_est_digits, lower_bound = 1, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(median_est_digits, lower_bound = 1, whole_num = TRUE, scalar = TRUE)
+  
+  # If group name not specified but using strata, will use var name
+  if (is.null(group_name) && !is.null(fit$strata)) 
+    group_name <- substr(names(fit$strata)[1], 1, regexpr('=', names(fit$strata)[1]) - 1)
+  
+  if (!is.null(time)) {
+    # Getting specific time estimates
+    tmp_summary <- summary(fit,time = time)
+    tmp_surv_est <- paste0(round_away_0(tmp_summary$surv * 100, surv_est_digits), '% (',
+                           round_away_0(tmp_summary$lower * 100, surv_est_digits), '%, ',
+                           round_away_0(tmp_summary$upper * 100, surv_est_digits), '%)')
+    if (!is.null(fit$strata)) {
+      tmp_surv_est_info_long <- bind_cols(
+        Level = substr(tmp_summary$strata,
+                       regexpr('=', tmp_summary$strata) + 1,
+                       nchar(as.vector(tmp_summary$strata))
+        ),
+        Time = tmp_summary$time,
+        Est = tmp_surv_est
+      )      
+    } else {
+      tmp_surv_est_info_long <- bind_cols(Time = tmp_summary$time, Est = tmp_surv_est)      
+    }
+    
+    tmp_surv_est_info <- tmp_surv_est_info_long %>% 
+      tidyr::spread(Time, Est, sep = ':')
+  } else {
+    tmp_summary <- summary(fit)
+    tmp_surv_est_info <- NULL
+  }
+  
+ 
+  if (!is.null(fit$strata)) {
+    # Need to bring back all levels in case  summary(fit,time = time) didn't cantain all levels
+    tmp_levels = tibble::tibble(Level = substr(unique(summary(fit)$strata),
+                                               regexpr('=', unique(summary(fit)$strata)) + 1,
+                                               nchar(as.vector(unique(summary(fit)$strata)))))
+    if (!is.null(time)) {
+      tmp_surv_est_info <- full_join(tmp_levels, tmp_surv_est_info, by = 'Level') %>% 
+      replace(., is.na(.), 'N.E.')
+    } else {
+      tmp_surv_est_info <- tmp_levels
+    }
+    tmp_med_info <- paste0(round_away_0(tmp_summary$table[,'median'], median_est_digits), ' (',
+                           round_away_0(tmp_summary$table[,'0.95LCL'], median_est_digits), ', ',
+                           round_away_0(tmp_summary$table[,'0.95UCL'], median_est_digits), ')')
+    
+  } else {
+    # No Strata Var
+    tmp_med_info <- paste0(round_away_0(tmp_summary$table['median'], median_est_digits), ' (',
+                           round_away_0(tmp_summary$table['0.95LCL'], median_est_digits), ', ',
+                           round_away_0(tmp_summary$table['0.95UCL'], median_est_digits), ')')
+  }
+  
+  tmp_med_info <- gsub('NA', 'N.E.', tmp_med_info)
+  
+  tmp_output <- bind_cols(Group = rep(group_name,length(tmp_med_info)),
+                          tmp_surv_est_info,
+                          `Median Estimate` = tmp_med_info)
+  
+  if (!is.null(title)) bind_cols(Name = rep(title,length(tmp_med_info)), tmp_output) else tmp_output
+}
