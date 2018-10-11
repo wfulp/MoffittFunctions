@@ -354,6 +354,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @param time numerical vector of time estimates. If NULL (default) no time estimates are calculated
 #' @param group_name strata variable name. If NULL and strata exists then using variable
 #' @param title title to use
+#' @param surv_est_prefix prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)
 #' @param surv_est_digits number of digits to round p values for survival estimates for specified times
 #' @param median_est_digits number of digits to round p values for Median Survival Estimates
 #' 
@@ -399,13 +400,16 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' 
 #' @export
 
-pretty_km_output <- function(fit, time = NULL, group_name = NULL, title = NULL, surv_est_digits = 1, median_est_digits = 2){
+pretty_km_output <- function(fit, time = NULL, group_name = NULL, title = NULL, surv_est_prefix = 'Time', surv_est_digits = 1, median_est_digits = 2){
   # Input Checking
   if (!is.null(time)) {
     # Want to make sure time > 0
     .check_numeric_input(time, lower_bound = 1e-50)
     if (any(time > max(fit$time, na.rm = TRUE))) 
       stop("At least one value of 'time' estimate is higher than the largest time value in 'fit' object.")
+  } else {
+    # if no time requested, setting time to 0 and then removing later, to make coding much easier.
+    time = 0
   }
   .check_numeric_input(surv_est_digits, lower_bound = 1, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(median_est_digits, lower_bound = 1, whole_num = TRUE, scalar = TRUE)
@@ -414,60 +418,49 @@ pretty_km_output <- function(fit, time = NULL, group_name = NULL, title = NULL, 
   if (is.null(group_name) && !is.null(fit$strata)) 
     group_name <- substr(names(fit$strata)[1], 1, regexpr('=', names(fit$strata)[1]) - 1)
   
-  if (!is.null(time)) {
-    # Getting specific time estimates
-    tmp_summary <- summary(fit,time = time)
-    tmp_surv_est <- paste0(round_away_0(tmp_summary$surv * 100, surv_est_digits), '% (',
-                           round_away_0(tmp_summary$lower * 100, surv_est_digits), '%, ',
-                           round_away_0(tmp_summary$upper * 100, surv_est_digits), '%)')
-    if (!is.null(fit$strata)) {
-      tmp_surv_est_info_long <- bind_cols(
-        Level = substr(tmp_summary$strata,
-                       regexpr('=', tmp_summary$strata) + 1,
-                       nchar(as.vector(tmp_summary$strata))
-        ),
-        Time = tmp_summary$time,
-        Est = tmp_surv_est
-      )      
-    } else {
-      tmp_surv_est_info_long <- bind_cols(Time = tmp_summary$time, Est = tmp_surv_est)      
-    }
-    
-    tmp_surv_est_info <- tmp_surv_est_info_long %>% 
-      tidyr::spread(Time, Est, sep = ':')
-  } else {
-    tmp_summary <- summary(fit)
-    tmp_surv_est_info <- NULL
-  }
+  # Getting specific time estimates
+  tmp_summary <- summary(fit,time = time)
+  tmp_surv_est <- paste0(round_away_0(tmp_summary$surv * 100, surv_est_digits), '% (',
+                         round_away_0(tmp_summary$lower * 100, surv_est_digits), '%, ',
+                         round_away_0(tmp_summary$upper * 100, surv_est_digits), '%)')
   
- 
   if (!is.null(fit$strata)) {
-    # Need to bring back all levels in case  summary(fit,time = time) didn't cantain all levels
-    tmp_levels = tibble::tibble(Level = substr(names(fit$strata),
-                                               regexpr('=',  names(fit$strata)) + 1,
-                                               nchar( names(fit$strata))))
-    if (!is.null(time)) {
-      tmp_surv_est_info <- full_join(tmp_levels, tmp_surv_est_info, by = 'Level') %>% 
-      replace(., is.na(.), 'N.E.')
-    } else {
-      tmp_surv_est_info <- tmp_levels
-    }
+    tmp_strata_levels <- substr(tmp_summary$strata, regexpr('=', tmp_summary$strata) + 1, nchar(as.vector(tmp_summary$strata)))
+    tmp_all_levels <- tibble::tibble(Level = substr(names(fit$strata), regexpr('=',  names(fit$strata)) + 1, nchar( names(fit$strata))))
     tmp_med_info <- paste0(round_away_0(tmp_summary$table[,'median'], median_est_digits), ' (',
                            round_away_0(tmp_summary$table[,'0.95LCL'], median_est_digits), ', ',
                            round_away_0(tmp_summary$table[,'0.95UCL'], median_est_digits), ')')
-    
+    n_events <- tmp_summary$table[,'events']
   } else {
-    # No Strata Var
+    tmp_strata_levels <- NULL
     tmp_med_info <- paste0(round_away_0(tmp_summary$table['median'], median_est_digits), ' (',
                            round_away_0(tmp_summary$table['0.95LCL'], median_est_digits), ', ',
                            round_away_0(tmp_summary$table['0.95UCL'], median_est_digits), ')')
+    n_events <- tmp_summary$table['events']
   }
+  tmp_surv_est_info_long <- dplyr::bind_cols(Level = tmp_strata_levels, 
+                                     Time = tmp_summary$time, Est = tmp_surv_est)
+  names(tmp_surv_est_info_long)[ names(tmp_surv_est_info_long) == 'Time'] = surv_est_prefix
+
+  tmp_surv_est_info <- tmp_surv_est_info_long %>% tidyr::spread_(surv_est_prefix, 'Est', sep = ':') 
+  
+  # Need to merge in time est with levels, in case entire strata missing. Then replace missing with N.E.
+  if (!is.null(fit$strata))  tmp_surv_est_info <- dplyr::full_join(tmp_all_levels, tmp_surv_est_info, by = 'Level') 
+  tmp_surv_est_info <- tmp_surv_est_info %>% replace(., is.na(.), 'N.E.')
   
   tmp_med_info <- gsub('NA', 'N.E.', tmp_med_info)
   
-  tmp_output <- bind_cols(Group = rep(group_name,length(tmp_med_info)),
+  tmp_output <- dplyr::bind_cols(Group = rep(group_name,length(tmp_med_info)),
+                          N = fit$n, `N Events` = n_events,
                           tmp_surv_est_info,
-                          `Median Estimate` = tmp_med_info)
+                          `Median Estimate` = tmp_med_info) 
   
-  if (!is.null(title)) bind_cols(Name = rep(title,length(tmp_med_info)), tmp_output) else tmp_output
+  # Dropping if time = 0 (i.e. no time given)
+  if (all(time == 0))  tmp_output <- tmp_output %>% dplyr::select(-contains(surv_est_prefix))
+  
+  # Reorder if strata
+  if (!is.null(fit$strata))  tmp_output <- tmp_output %>% dplyr::select(Group, Level, dplyr::everything())
+  
+  # Adding Title in front, if given
+  if (!is.null(title)) dplyr::bind_cols(Name = rep(title,length(tmp_med_info)), tmp_output) else tmp_output
 }

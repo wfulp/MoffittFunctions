@@ -5,7 +5,8 @@
 \title{Fancy Table Output of KM (survfit) Fit}
 \usage{
 pretty_km_output(fit, time = NULL, group_name = NULL, title = NULL,
-  surv_est_digits = 1, median_est_digits = 2)
+  surv_est_prefix = "Time", surv_est_digits = 1,
+  median_est_digits = 2)
 }
 \arguments{
 \item{fit}{survfit object (with or without single strata variable)}
@@ -15,6 +16,8 @@ pretty_km_output(fit, time = NULL, group_name = NULL, title = NULL,
 \item{group_name}{strata variable name. If NULL and strata exists then using variable}
 
 \item{title}{title to use}
+
+\item{surv_est_prefix}{prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)}
 
 \item{surv_est_digits}{number of digits to round p values for survival estimates for specified times}
 
