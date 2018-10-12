@@ -4,24 +4,26 @@
 \alias{pretty_km_output}
 \title{Fancy Table Output of KM (survfit) Fit}
 \usage{
-pretty_km_output(fit, time = NULL, group_name = NULL, title = NULL,
-  surv_est_prefix = "Time", surv_est_digits = 1,
-  median_est_digits = 2)
+pretty_km_output(fit, time_est = NULL, group_name = NULL,
+  title_name = NULL, surv_est_prefix = "Time", surv_est_digits = 1,
+  median_est_digits = 2, latex_output = FALSE)
 }
 \arguments{
 \item{fit}{survfit object (with or without single strata variable)}
 
-\item{time}{numerical vector of time estimates. If NULL (default) no time estimates are calculated}
+\item{time_est}{numerical vector of time estimates. If NULL (default) no time estimates are calculated}
 
 \item{group_name}{strata variable name. If NULL and strata exists then using variable}
-
-\item{title}{title to use}
 
 \item{surv_est_prefix}{prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)}
 
 \item{surv_est_digits}{number of digits to round p values for survival estimates for specified times}
 
 \item{median_est_digits}{number of digits to round p values for Median Survival Estimates}
+
+\item{latex_output}{will this table go into a latex output (making special charaters latex friendly)}
+
+\item{title}{title to use}
 }
 \value{
 A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
@@ -36,29 +38,28 @@ Currently works with multiple categorical variables used in the fit (i.e. \code{
 
 # Basic linear model example
 set.seed(542542522)
-y_bin <- sample(0:1, 100, replace = TRUE)
-y_bin2 <- sample(0:1, 100, replace = TRUE)
+ybin <- sample(0:1, 100, replace = TRUE)
+ybin2 <- sample(0:1, 100, replace = TRUE)
 y <- rexp(100,.1)
 x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
 x2 <- factor(sample(letters[1:4],100,replace = TRUE))
-my_fit <- survival::survfit(survival::Surv(y, y_bin) ~ 1)
-my_fit2 <- survival::survfit(survival::Surv(y, y_bin) ~ x1)
-my_fit3 <- survival::survfit(survival::Surv(y, y_bin) ~ x2)
-my_fit_y2 <- survival::survfit(survival::Surv(y, y_bin2) ~ 1)
+my_fit <- survival::survfit(survival::Surv(y, ybin) ~ 1)
+my_fit2 <- survival::survfit(survival::Surv(y, ybin) ~ x1)
+my_fit3 <- survival::survfit(survival::Surv(y, ybin) ~ x2)
+my_fit_y2 <- survival::survfit(survival::Surv(y, ybin2) ~ 1)
 
-pretty_km_output(fit = my_fit3, time = c(5,10), title = 'Overall Fit')
+pretty_km_output(fit = my_fit3, time_est = c(5,10), title = 'Overall Fit')
 
 library(dplyr) 
 km_info <- bind_rows(
-  pretty_km_output(fit = my_fit, time = c(5,10), group_name = 'Overall', title = 'Overall Survival (y_bin)'),
-  pretty_km_output(fit = my_fit2, time = c(5,10), group_name = NULL, title = 'Overall Survival (y_bin)'),
-  pretty_km_output(fit = my_fit3, time = c(5,10), group_name = 'x2', title = 'Overall Survival (y_bin)'),
-  pretty_km_output(fit = my_fit_y2, time = c(5,10), group_name = 'Overall', title = 'Overall Survival (y_bin2)'),
+  pretty_km_output(fit = my_fit, time_est = c(5,10), group_name = 'Overall', title = 'Overall Survival---ybin'),
+  pretty_km_output(fit = my_fit2, time_est = c(5,10), group_name = NULL, title = 'Overall Survival---ybin'),
+  pretty_km_output(fit = my_fit3, time_est = c(5,10), group_name = 'x2', title = 'Overall Survival---ybin'),
+  pretty_km_output(fit = my_fit_y2, time_est = c(5,10), group_name = 'Overall', title = 'Overall Survival---ybin2'),
 ) \%>\% select(Name, Group, Level, everything())
 
 library(kableExtra)
-options(knitr.kable.NA = '')
-kable(km_info, escape = T, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\% 
+kable(km_info, escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\% 
   collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2) \%>\% 
   kable_styling(font_size = 8.5) \%>\% 
   footnote(number = c('Kaplanâ€“Meier Survival Percentage Estimates at 5 or 10 years, with 95\% Confidence Intervals'))

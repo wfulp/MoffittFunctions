@@ -351,12 +351,13 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' This function takes a Kaplan-Meier model fit object (from survival::survfit) and calculate survival estimates at a specified time, and Median Survival Estimates. This can be performed on an overall KM fit or a fit including a categorical variable (strata).
 #'
 #' @param fit survfit object (with or without single strata variable)
-#' @param time numerical vector of time estimates. If NULL (default) no time estimates are calculated
+#' @param time_est numerical vector of time estimates. If NULL (default) no time estimates are calculated
 #' @param group_name strata variable name. If NULL and strata exists then using variable
 #' @param title title to use
 #' @param surv_est_prefix prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)
 #' @param surv_est_digits number of digits to round p values for survival estimates for specified times
 #' @param median_est_digits number of digits to round p values for Median Survival Estimates
+#' @param latex_output will this table go into a latex output (making special charaters latex friendly)
 #' 
 #' @details 
 #' Currently works with multiple categorical variables used in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} columns may be off.
@@ -368,29 +369,28 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' 
 #' # Basic linear model example
 #' set.seed(542542522)
-#' y_bin <- sample(0:1, 100, replace = TRUE)
-#' y_bin2 <- sample(0:1, 100, replace = TRUE)
+#' ybin <- sample(0:1, 100, replace = TRUE)
+#' ybin2 <- sample(0:1, 100, replace = TRUE)
 #' y <- rexp(100,.1)
 #' x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
 #' x2 <- factor(sample(letters[1:4],100,replace = TRUE))
-#' my_fit <- survival::survfit(survival::Surv(y, y_bin) ~ 1)
-#' my_fit2 <- survival::survfit(survival::Surv(y, y_bin) ~ x1)
-#' my_fit3 <- survival::survfit(survival::Surv(y, y_bin) ~ x2)
-#' my_fit_y2 <- survival::survfit(survival::Surv(y, y_bin2) ~ 1)
+#' my_fit <- survival::survfit(survival::Surv(y, ybin) ~ 1)
+#' my_fit2 <- survival::survfit(survival::Surv(y, ybin) ~ x1)
+#' my_fit3 <- survival::survfit(survival::Surv(y, ybin) ~ x2)
+#' my_fit_y2 <- survival::survfit(survival::Surv(y, ybin2) ~ 1)
 #' 
-#' pretty_km_output(fit = my_fit3, time = c(5,10), title = 'Overall Fit')
+#' pretty_km_output(fit = my_fit3, time_est = c(5,10), title = 'Overall Fit')
 #' 
 #' library(dplyr) 
 #' km_info <- bind_rows(
-#'   pretty_km_output(fit = my_fit, time = c(5,10), group_name = 'Overall', title = 'Overall Survival (y_bin)'),
-#'   pretty_km_output(fit = my_fit2, time = c(5,10), group_name = NULL, title = 'Overall Survival (y_bin)'),
-#'   pretty_km_output(fit = my_fit3, time = c(5,10), group_name = 'x2', title = 'Overall Survival (y_bin)'),
-#'   pretty_km_output(fit = my_fit_y2, time = c(5,10), group_name = 'Overall', title = 'Overall Survival (y_bin2)'),
+#'   pretty_km_output(fit = my_fit, time_est = c(5,10), group_name = 'Overall', title = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit2, time_est = c(5,10), group_name = NULL, title = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit3, time_est = c(5,10), group_name = 'x2', title = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit_y2, time_est = c(5,10), group_name = 'Overall', title = 'Overall Survival---ybin2'),
 #' ) %>% select(Name, Group, Level, everything())
 #' 
 #' library(kableExtra)
-#' options(knitr.kable.NA = '')
-#' kable(km_info, escape = T, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') %>% 
+#' kable(km_info, escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') %>% 
 #'   collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2) %>% 
 #'   kable_styling(font_size = 8.5) %>% 
 #'   footnote(number = c('Kaplan–Meier Survival Percentage Estimates at 5 or 10 years, with 95% Confidence Intervals'))
@@ -400,29 +400,30 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' 
 #' @export
 
-pretty_km_output <- function(fit, time = NULL, group_name = NULL, title = NULL, surv_est_prefix = 'Time', surv_est_digits = 1, median_est_digits = 2){
+pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 1, median_est_digits = 2, latex_output =FALSE){
   # Input Checking
-  if (!is.null(time)) {
-    # Want to make sure time > 0
-    .check_numeric_input(time, lower_bound = 1e-50)
-    if (any(time > max(fit$time, na.rm = TRUE))) 
-      stop("At least one value of 'time' estimate is higher than the largest time value in 'fit' object.")
+  if (!is.null(time_est)) {
+    # Want to make sure time_est > 0
+    .check_numeric_input(time_est, lower_bound = 1e-50)
+    if (any(time_est > max(fit$time, na.rm = TRUE))) 
+      stop("At least one value of 'time_est' estimate is higher than the largest time_est value in 'fit' object.")
   } else {
-    # if no time requested, setting time to 0 and then removing later, to make coding much easier.
-    time = 0
+    # if no time_est requested, setting time_est to 0 and then removing later, to make coding much easier.
+    time_est = 0
   }
-  .check_numeric_input(surv_est_digits, lower_bound = 1, whole_num = TRUE, scalar = TRUE)
-  .check_numeric_input(median_est_digits, lower_bound = 1, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  if (latex_output) percent_sign <- '\\%' else percent_sign <- '%'
   
   # If group name not specified but using strata, will use var name
   if (is.null(group_name) && !is.null(fit$strata)) 
     group_name <- substr(names(fit$strata)[1], 1, regexpr('=', names(fit$strata)[1]) - 1)
   
-  # Getting specific time estimates
-  tmp_summary <- summary(fit,time = time)
-  tmp_surv_est <- paste0(round_away_0(tmp_summary$surv * 100, surv_est_digits), '% (',
-                         round_away_0(tmp_summary$lower * 100, surv_est_digits), '%, ',
-                         round_away_0(tmp_summary$upper * 100, surv_est_digits), '%)')
+  # Getting specific time_est estimates
+  tmp_summary <- summary(fit, time = time_est)
+  tmp_surv_est <- paste0(round_away_0(tmp_summary$surv * 100, surv_est_digits), percent_sign, ' (',
+                         round_away_0(tmp_summary$lower * 100, surv_est_digits), percent_sign, ', ',
+                         round_away_0(tmp_summary$upper * 100, surv_est_digits), percent_sign, ')')
   
   if (!is.null(fit$strata)) {
     tmp_strata_levels <- substr(tmp_summary$strata, regexpr('=', tmp_summary$strata) + 1, nchar(as.vector(tmp_summary$strata)))
@@ -453,14 +454,121 @@ pretty_km_output <- function(fit, time = NULL, group_name = NULL, title = NULL, 
   tmp_output <- dplyr::bind_cols(Group = rep(group_name,length(tmp_med_info)),
                           N = fit$n, `N Events` = n_events,
                           tmp_surv_est_info,
-                          `Median Estimate` = tmp_med_info) 
+                          `Median Estimate` = tmp_med_info) %>% 
+    # putting time variables at end
+    dplyr::select(-contains(paste0(surv_est_prefix, ':')), everything(), contains(paste0(surv_est_prefix, ':')))
   
   # Dropping if time = 0 (i.e. no time given)
-  if (all(time == 0))  tmp_output <- tmp_output %>% dplyr::select(-contains(surv_est_prefix))
+  if (all(time_est == 0))  tmp_output <- tmp_output %>% dplyr::select(-dplyr::contains(surv_est_prefix))
   
   # Reorder if strata
   if (!is.null(fit$strata))  tmp_output <- tmp_output %>% dplyr::select(Group, Level, dplyr::everything())
   
   # Adding Title in front, if given
-  if (!is.null(title)) dplyr::bind_cols(Name = rep(title,length(tmp_med_info)), tmp_output) else tmp_output
+  if (!is.null(title_name)) dplyr::bind_cols(Name = rep(title_name,length(tmp_med_info)), tmp_output) else tmp_output
 }
+
+
+
+
+
+#' Wrapper for KM Model Output, with Log-Rank p value
+#' 
+#' This function takes a dataset, along with variables names for time and even status for KM fit, and possibly strata
+#'
+#' @param x_in name of strata variable, or NA (default) if no strata desired
+#' @param model_data dataset that contains \code{x_in}, \code{time_in}, and \code{event_in} variables
+#' @param time_in name of time variable component of outcome measure
+#' @param event_in name of T/F event stauts or expression resulting in T/F scalor (i.e. "Vital_Status == 'Dead'") for the name of event variable component of outcome measure. TRUE represents event (i.e. Death)
+#' @param time_est numerical vector of time estimates. If NULL (default) no time estimates are calculated
+#' @param group_name strata variable name. If NULL and strata exists then using variable
+#' @param title title to use
+#' @param surv_est_prefix prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)
+#' @param surv_est_digits number of digits to round p values for survival estimates for specified times
+#' @param median_est_digits number of digits to round p values for Median Survival Estimates
+#' @param p_digits number of digits to round p values for Log-Rank p value
+#' @param latex_output will this table go into a latex output (making special charaters latex friendly)
+#' @param sig_alpha the defined significance level. Default = 0.05
+#' @param background background color of significant values, or no highlighting if NULL. Default is "yellow"
+#' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})
+#
+#' 
+#' @details 
+#' Currently works with multiple categorical variables used in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} columns may be off.
+#' 
+#' @return
+#' A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
+#' 
+#' @examples
+#' 
+#' # Basic linear model example
+#' set.seed(542542522)
+#' ybin <- sample(0:1, 100, replace = TRUE)
+#' ybin2 <- sample(0:1, 100, replace = TRUE)
+#' y <- rexp(100,.1)
+#' x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
+#' x2 <- factor(sample(letters[1:4],100,replace = TRUE))
+#' my_data <- data.frame(y, ybin,ybin2, x1, x2)
+#' Hmisc::label(my_data$x1) <- "X1 Variable"
+#' 
+#'  # Single runs 
+#' run_km_model(x_in = 'x1', model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = NULL)
+#' run_km_model(x_in = 'x1', model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10))
+#' 
+#' # Multiple runs for different variables
+#' library(dplyr) 
+#' vars_to_run = c(NA, 'x1', 'x2')
+#' purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = NULL) %>% 
+#'    select(Group, Level, everything())
+#' km_info <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10)) %>% 
+#'    select(Group, Level, everything())
+#' 
+#' 
+#' library(kableExtra)
+#' options(knitr.kable.NA = '')
+#' kable(bind_rows(km_info, km_info_run2), escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') %>%
+#'   column_spec(3:4, width = "3em") %>%
+#'   collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major') %>%
+#'   kable_styling(font_size = 8.5) %>%
+#'   footnote(number = c('Kaplan–Meier Survival Percentage Estimates at 5 or 10 years, with 95% Confidence Intervals', 'N.E.:Not Estimable'))
+#' 
+#' @importFrom  Hmisc label
+#' 
+#' @export
+#' 
+run_km_model <- function(x_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 1, median_est_digits = 2, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+
+  .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
+  
+  if (is.na(x_in)) {
+    if (is.null(group_name)) group_name <- 'Overall'
+    tmp_formula <- as.formula(paste("survival::Surv(",time_in,",",event_in,") ~ 1"))
+  } else {
+    if (is.null(group_name)) {
+      #Using label if possible
+      if (Hmisc::label(model_data[,x_in]) != '') 
+        group_name <- Hmisc::label(model_data[,x_in]) 
+      else group_name <- gsub('_', ' ', x_in)
+    }
+    tmp_formula <- as.formula(paste("survival::Surv(",time_in,",",event_in,") ~ ", x_in))
+    tmp_pval <-  pchisq(survival::survdiff(formula = tmp_formula, data = model_data)$chi, 
+                        length(survival::survdiff(formula = tmp_formula, data = model_data)$n) - 1, 
+                        lower.tail = FALSE)
+    if (latex_output) {
+      tmp_p_info <- pretty_pvalues(tmp_pval, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = background, ...)
+    } else {
+      tmp_p_info <- pretty_pvalues(tmp_pval, digits = p_digits, trailing_zeros = TRUE)
+    }
+  }
+  
+  tmp_fit <- survival::survfit(tmp_formula, model_data)
+  tmp_km_output <- pretty_km_output(fit = tmp_fit, time_est = time_est, group_name = group_name, title_name = title_name)
+  
+  if (is.na(x_in)) 
+    tmp_km_output else 
+      dplyr::bind_cols(tmp_km_output, `Log-Rank P` = c(tmp_p_info, rep('', nrow(tmp_km_output) - 1)))
+  
+ }

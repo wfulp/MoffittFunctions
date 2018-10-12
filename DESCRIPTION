@@ -8,7 +8,7 @@ Authors: William (Jimmy) Fulp, Ram Thapa
 Description: Statistical, data processing, and annotation functions for Moffitt Biostat.
 License: GPL-3
 LazyData: true
-Imports: data.table, dplyr, tibble
+Imports: data.table, dplyr, tibble, Hmisc
 Requires: knitr, devtools, coin, Exact, broom (>= 0.5.0)
 Suggests: testthat
 RoxygenNote: 6.1.0
