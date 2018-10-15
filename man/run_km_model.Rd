@@ -70,13 +70,15 @@ library(dplyr)
 vars_to_run = c(NA, 'x1', 'x2')
 purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = NULL) \%>\% 
    select(Group, Level, everything())
-km_info <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10)) \%>\% 
+km_info <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10), surv_est_prefix = 'Year', title_name = 'Overall Survival') \%>\% 
    select(Group, Level, everything())
-
+   
+km_info2 <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin2 == 1', time_est = c(5,10), surv_est_prefix = 'Year', title_name = 'Cancer Specific Survival') \%>\% 
+   select(Group, Level, everything())
 
 library(kableExtra)
 options(knitr.kable.NA = '')
-kable(bind_rows(km_info, km_info_run2), escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\%
+kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\%
   column_spec(3:4, width = "3em") \%>\%
   collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major') \%>\%
   kable_styling(font_size = 8.5) \%>\%
