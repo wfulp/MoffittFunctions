@@ -4,17 +4,25 @@
 \alias{run_km_model}
 \title{Wrapper for KM Model Output, with Log-Rank p value}
 \usage{
-run_km_model(x_in = NA, model_data, y_in, event_in, time_est = NULL,
+run_km_model(x_in = NA, model_data, time_in, event_in, time_est = NULL,
   group_name = NULL, title_name = NULL, surv_est_prefix = "Time",
   surv_est_digits = 1, median_est_digits = 2, p_digits = 4,
-  latex_output = TRUE, sig_alpha = 0.05, background = "yellow", ...)
+  latex_output = FALSE, sig_alpha = 0.05, background = "yellow", ...)
 }
 \arguments{
-\item{x_in}{survfit object (with or without single strata variable)}
+\item{x_in}{name of strata variable, or NA (default) if no strata desired}
+
+\item{model_data}{dataset that contains \code{x_in}, \code{time_in}, and \code{event_in} variables}
+
+\item{time_in}{name of time variable component of outcome measure}
+
+\item{event_in}{name of T/F event stauts or expression resulting in T/F scalor (i.e. "Vital_Status == 'Dead'") for the name of event variable component of outcome measure. TRUE represents event (i.e. Death)}
 
 \item{time_est}{numerical vector of time estimates. If NULL (default) no time estimates are calculated}
 
 \item{group_name}{strata variable name. If NULL and strata exists then using variable}
+
+\item{title_name}{title to use}
 
 \item{surv_est_prefix}{prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)}
 
@@ -22,9 +30,15 @@ run_km_model(x_in = NA, model_data, y_in, event_in, time_est = NULL,
 
 \item{median_est_digits}{number of digits to round p values for Median Survival Estimates}
 
+\item{p_digits}{number of digits to round p values for Log-Rank p value}
+
 \item{latex_output}{will this table go into a latex output (making special charaters latex friendly)}
 
-\item{title}{title to use}
+\item{sig_alpha}{the defined significance level. Default = 0.05}
+
+\item{background}{background color of significant values, or no highlighting if NULL. Default is "yellow"}
+
+\item{...}{other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})}
 }
 \value{
 A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
@@ -48,15 +62,15 @@ my_data <- data.frame(y, ybin,ybin2, x1, x2)
 Hmisc::label(my_data$x1) <- "X1 Variable"
 
  # Single runs 
-run_km_model(x_in = 'x1', model_data = my_data, y_in = 'y', event_in = 'ybin', time_est = NULL)
-run_km_model(x_in = 'x1', model_data = my_data, y_in = 'y', event_in = 'ybin', time_est = c(5,10))
+run_km_model(x_in = 'x1', model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = NULL)
+run_km_model(x_in = 'x1', model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10))
 
 # Multiple runs for different variables
 library(dplyr) 
 vars_to_run = c(NA, 'x1', 'x2')
-purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, y_in = 'y', event_in = 'ybin', time_est = NULL) \%>\% 
+purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = NULL) \%>\% 
    select(Group, Level, everything())
-km_info <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, y_in = 'y', event_in = 'ybin', time_est = c(5,10)) \%>\% 
+km_info <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10)) \%>\% 
    select(Group, Level, everything())
 
 

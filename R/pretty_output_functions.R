@@ -24,7 +24,8 @@
 #' @return data.frame with all the pasted values requested. Each name will have '_comparison' at the end of the names (i.e. mean_comparison, median_comparison, ...)
 #' @examples
 #'
-#'
+#' # Same examples on data.table
+#' library(data.table)
 #' data(exampleData_BAMA)
 #'
 #' descriptive_stats_by_group <- exampleData_BAMA[, .(
@@ -49,7 +50,7 @@
 #'    alternative = 'less', digits = 5, keep_all = FALSE)
 #'
 #'
-#' # Same example wit tidyverse (dplyr+tidyr) with some custom functions
+#' # Same example with tidyverse (dplyr+tidyr) with some custom functions
 #'
 #' library(dplyr)
 #' library(tidyr)
@@ -353,7 +354,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @param fit survfit object (with or without single strata variable)
 #' @param time_est numerical vector of time estimates. If NULL (default) no time estimates are calculated
 #' @param group_name strata variable name. If NULL and strata exists then using variable
-#' @param title title to use
+#' @param title_name title to use
 #' @param surv_est_prefix prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)
 #' @param surv_est_digits number of digits to round p values for survival estimates for specified times
 #' @param median_est_digits number of digits to round p values for Median Survival Estimates
@@ -363,7 +364,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' Currently works with multiple categorical variables used in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} columns may be off.
 #' 
 #' @return
-#' A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
+#' A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Median Estimate}, \code{Time:X} (Survival estimates for each time provided, if any). In no strata variable tibble is one row, otherwise nrows = number of strata levels.
 #' 
 #' @examples
 #' 
@@ -379,14 +380,14 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' my_fit3 <- survival::survfit(survival::Surv(y, ybin) ~ x2)
 #' my_fit_y2 <- survival::survfit(survival::Surv(y, ybin2) ~ 1)
 #' 
-#' pretty_km_output(fit = my_fit3, time_est = c(5,10), title = 'Overall Fit')
+#' pretty_km_output(fit = my_fit3, time_est = c(5,10), title_name = 'Overall Fit')
 #' 
 #' library(dplyr) 
 #' km_info <- bind_rows(
-#'   pretty_km_output(fit = my_fit, time_est = c(5,10), group_name = 'Overall', title = 'Overall Survival---ybin'),
-#'   pretty_km_output(fit = my_fit2, time_est = c(5,10), group_name = NULL, title = 'Overall Survival---ybin'),
-#'   pretty_km_output(fit = my_fit3, time_est = c(5,10), group_name = 'x2', title = 'Overall Survival---ybin'),
-#'   pretty_km_output(fit = my_fit_y2, time_est = c(5,10), group_name = 'Overall', title = 'Overall Survival---ybin2'),
+#'   pretty_km_output(fit = my_fit, time_est = c(5,10), group_name = 'Overall', title_name = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit2, time_est = c(5,10), group_name = NULL, title_name = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit3, time_est = c(5,10), group_name = 'x2', title_name = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit_y2, time_est = c(5,10), group_name = 'Overall', title_name = 'Overall Survival---ybin2'),
 #' ) %>% select(Name, Group, Level, everything())
 #' 
 #' library(kableExtra)
@@ -456,7 +457,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
                           tmp_surv_est_info,
                           `Median Estimate` = tmp_med_info) %>% 
     # putting time variables at end
-    dplyr::select(-contains(paste0(surv_est_prefix, ':')), everything(), contains(paste0(surv_est_prefix, ':')))
+    dplyr::select(-dplyr::contains(paste0(surv_est_prefix, ':')), dplyr::everything(), dplyr::contains(paste0(surv_est_prefix, ':')))
   
   # Dropping if time = 0 (i.e. no time given)
   if (all(time_est == 0))  tmp_output <- tmp_output %>% dplyr::select(-dplyr::contains(surv_est_prefix))
@@ -482,7 +483,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' @param event_in name of T/F event stauts or expression resulting in T/F scalor (i.e. "Vital_Status == 'Dead'") for the name of event variable component of outcome measure. TRUE represents event (i.e. Death)
 #' @param time_est numerical vector of time estimates. If NULL (default) no time estimates are calculated
 #' @param group_name strata variable name. If NULL and strata exists then using variable
-#' @param title title to use
+#' @param title_name title to use
 #' @param surv_est_prefix prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)
 #' @param surv_est_digits number of digits to round p values for survival estimates for specified times
 #' @param median_est_digits number of digits to round p values for Median Survival Estimates

@@ -15,6 +15,8 @@ pretty_km_output(fit, time_est = NULL, group_name = NULL,
 
 \item{group_name}{strata variable name. If NULL and strata exists then using variable}
 
+\item{title_name}{title to use}
+
 \item{surv_est_prefix}{prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)}
 
 \item{surv_est_digits}{number of digits to round p values for survival estimates for specified times}
@@ -22,11 +24,9 @@ pretty_km_output(fit, time_est = NULL, group_name = NULL,
 \item{median_est_digits}{number of digits to round p values for Median Survival Estimates}
 
 \item{latex_output}{will this table go into a latex output (making special charaters latex friendly)}
-
-\item{title}{title to use}
 }
 \value{
-A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
+A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Median Estimate}, \code{Time:X} (Survival estimates for each time provided, if any). In no strata variable tibble is one row, otherwise nrows = number of strata levels.
 }
 \description{
 This function takes a Kaplan-Meier model fit object (from survival::survfit) and calculate survival estimates at a specified time, and Median Survival Estimates. This can be performed on an overall KM fit or a fit including a categorical variable (strata).
@@ -48,14 +48,14 @@ my_fit2 <- survival::survfit(survival::Surv(y, ybin) ~ x1)
 my_fit3 <- survival::survfit(survival::Surv(y, ybin) ~ x2)
 my_fit_y2 <- survival::survfit(survival::Surv(y, ybin2) ~ 1)
 
-pretty_km_output(fit = my_fit3, time_est = c(5,10), title = 'Overall Fit')
+pretty_km_output(fit = my_fit3, time_est = c(5,10), title_name = 'Overall Fit')
 
 library(dplyr) 
 km_info <- bind_rows(
-  pretty_km_output(fit = my_fit, time_est = c(5,10), group_name = 'Overall', title = 'Overall Survival---ybin'),
-  pretty_km_output(fit = my_fit2, time_est = c(5,10), group_name = NULL, title = 'Overall Survival---ybin'),
-  pretty_km_output(fit = my_fit3, time_est = c(5,10), group_name = 'x2', title = 'Overall Survival---ybin'),
-  pretty_km_output(fit = my_fit_y2, time_est = c(5,10), group_name = 'Overall', title = 'Overall Survival---ybin2'),
+  pretty_km_output(fit = my_fit, time_est = c(5,10), group_name = 'Overall', title_name = 'Overall Survival---ybin'),
+  pretty_km_output(fit = my_fit2, time_est = c(5,10), group_name = NULL, title_name = 'Overall Survival---ybin'),
+  pretty_km_output(fit = my_fit3, time_est = c(5,10), group_name = 'x2', title_name = 'Overall Survival---ybin'),
+  pretty_km_output(fit = my_fit_y2, time_est = c(5,10), group_name = 'Overall', title_name = 'Overall Survival---ybin2'),
 ) \%>\% select(Name, Group, Level, everything())
 
 library(kableExtra)
