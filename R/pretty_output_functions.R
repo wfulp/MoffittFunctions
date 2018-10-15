@@ -449,6 +449,10 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
   
   tmp_med_info <- gsub('NA', 'N.E.', tmp_med_info)
   
+  # Stripping some unnecessary attributes
+  attr(tmp_med_info, 'names') <- NULL
+  attr(n_events, 'names') <- NULL
+  
   tmp_output <- dplyr::bind_cols(Group = rep(group_name,length(tmp_med_info)),
                           N = fit$n, `N Events` = n_events,
                           tmp_surv_est_info,
