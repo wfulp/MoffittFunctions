@@ -414,7 +414,6 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
   }
   .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
-  if (latex_output) percent_sign <- '\\%' else percent_sign <- '%'
   
   # If group name not specified but using strata, will use var name
   if (is.null(group_name) && !is.null(fit$strata)) 
@@ -422,22 +421,20 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
   
   # Getting specific time_est estimates
   tmp_summary <- summary(fit, time = time_est)
-  tmp_surv_est <- paste0(round_away_0(tmp_summary$surv * 100, surv_est_digits), percent_sign, ' (',
-                         round_away_0(tmp_summary$lower * 100, surv_est_digits), percent_sign, ', ',
-                         round_away_0(tmp_summary$upper * 100, surv_est_digits), percent_sign, ')')
-  
+  tmp_surv_est <-  stat_paste(tmp_summary$surv, tmp_summary$lower, tmp_summary$upper, 
+                              digits = surv_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
+  if (latex_output) tmp_surv_est <- gsub('\\%','\\\\%', tmp_surv_est)
+
   if (!is.null(fit$strata)) {
     tmp_strata_levels <- substr(tmp_summary$strata, regexpr('=', tmp_summary$strata) + 1, nchar(as.vector(tmp_summary$strata)))
     tmp_all_levels <- tibble::tibble(Level = substr(names(fit$strata), regexpr('=',  names(fit$strata)) + 1, nchar( names(fit$strata))))
-    tmp_med_info <- paste0(round_away_0(tmp_summary$table[,'median'], median_est_digits), ' (',
-                           round_away_0(tmp_summary$table[,'0.95LCL'], median_est_digits), ', ',
-                           round_away_0(tmp_summary$table[,'0.95UCL'], median_est_digits), ')')
+    tmp_med_info <- stat_paste(tmp_summary$table[,'median'], tmp_summary$table[,'0.95LCL'], tmp_summary$table[,'0.95UCL'], 
+                               digits = surv_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
     n_events <- tmp_summary$table[,'events']
   } else {
     tmp_strata_levels <- NULL
-    tmp_med_info <- paste0(round_away_0(tmp_summary$table['median'], median_est_digits), ' (',
-                           round_away_0(tmp_summary$table['0.95LCL'], median_est_digits), ', ',
-                           round_away_0(tmp_summary$table['0.95UCL'], median_est_digits), ')')
+    tmp_med_info <-  stat_paste(tmp_summary$table['median'], tmp_summary$table['0.95LCL'], tmp_summary$table['0.95UCL'], 
+                                digits = surv_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
     n_events <- tmp_summary$table['events']
   }
   tmp_surv_est_info_long <- dplyr::bind_cols(Level = tmp_strata_levels, 
