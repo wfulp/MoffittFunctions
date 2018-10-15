@@ -44,7 +44,7 @@ run_km_model(x_in = NA, model_data, time_in, event_in, time_est = NULL,
 A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
 }
 \description{
-This function takes a dataset, along with variables names for time and even status for KM fit, and possibly strata
+This function takes a dataset, along with variables names for time and event status for KM fit, and possibly strata
 }
 \details{
 Currently works with multiple categorical variables used in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} columns may be off.

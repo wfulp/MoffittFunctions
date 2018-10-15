@@ -476,7 +476,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 
 #' Wrapper for KM Model Output, with Log-Rank p value
 #' 
-#' This function takes a dataset, along with variables names for time and even status for KM fit, and possibly strata
+#' This function takes a dataset, along with variables names for time and event status for KM fit, and possibly strata
 #'
 #' @param x_in name of strata variable, or NA (default) if no strata desired
 #' @param model_data dataset that contains \code{x_in}, \code{time_in}, and \code{event_in} variables
