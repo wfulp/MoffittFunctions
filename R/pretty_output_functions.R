@@ -429,12 +429,12 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
     tmp_strata_levels <- substr(tmp_summary$strata, regexpr('=', tmp_summary$strata) + 1, nchar(as.vector(tmp_summary$strata)))
     tmp_all_levels <- tibble::tibble(Level = substr(names(fit$strata), regexpr('=',  names(fit$strata)) + 1, nchar( names(fit$strata))))
     tmp_med_info <- stat_paste(tmp_summary$table[,'median'], tmp_summary$table[,'0.95LCL'], tmp_summary$table[,'0.95UCL'], 
-                               digits = surv_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
+                               digits = median_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
     n_events <- tmp_summary$table[,'events']
   } else {
     tmp_strata_levels <- NULL
     tmp_med_info <-  stat_paste(tmp_summary$table['median'], tmp_summary$table['0.95LCL'], tmp_summary$table['0.95UCL'], 
-                                digits = surv_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
+                                digits = median_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
     n_events <- tmp_summary$table['events']
   }
   tmp_surv_est_info_long <- dplyr::bind_cols(Level = tmp_strata_levels, 
