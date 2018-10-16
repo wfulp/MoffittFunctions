@@ -63,5 +63,13 @@ kable(km_info, escape = F, longtable = F, booktabs = TRUE, linesep = '', caption
   collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2) \%>\% 
   kable_styling(font_size = 8.5) \%>\% 
   footnote(number = c('Kaplanâ€“Meier Survival Percentage Estimates at 5 or 10 years, with 95\% Confidence Intervals'))
+  
+  # Real World Examples
+  data(Bladder_Cancer)
+  surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')   
+  downstage_fit <- survival::survfit(surv_obj ~ PT0N0, data = Bladder_Cancer)
+  
+  pretty_km_output(fit = downstage_fit, time_est = c(24, 60), surv_est_prefix = 'Month', surv_est_digits = 3)
+  
 
 }

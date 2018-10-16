@@ -84,4 +84,14 @@ kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, 
   kable_styling(font_size = 8.5) \%>\%
   footnote(number = c('Kaplanâ€“Meier Survival Percentage Estimates at 5 or 10 years, with 95\% Confidence Intervals', 'N.E.:Not Estimable'))
 
+
+
+  # Real World Example
+  data(Bladder_Cancer)
+  
+  vars_to_run = c(NA, 'Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
+  
+  purrr::map_dfr(vars_to_run, run_km_model, model_data = Bladder_Cancer, time_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"', time_est = c(24,60), surv_est_prefix = 'Month', p_digits=5) \%>\% 
+   select(Group, Level, everything())
+  
 }

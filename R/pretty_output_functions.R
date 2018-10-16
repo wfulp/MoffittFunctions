@@ -395,6 +395,14 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #'   collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2) %>% 
 #'   kable_styling(font_size = 8.5) %>% 
 #'   footnote(number = c('Kaplan–Meier Survival Percentage Estimates at 5 or 10 years, with 95% Confidence Intervals'))
+#'   
+#'   # Real World Examples
+#'   data(Bladder_Cancer)
+#'   surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')   
+#'   downstage_fit <- survival::survfit(surv_obj ~ PT0N0, data = Bladder_Cancer)
+#'   
+#'   pretty_km_output(fit = downstage_fit, time_est = c(24, 60), surv_est_prefix = 'Month', surv_est_digits = 3)
+#'   
 #' 
 #' @importFrom  dplyr %>%
 #' @importFrom tibble tibble
@@ -417,7 +425,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
   
   # If group name not specified but using strata, will use var name
   if (is.null(group_name) && !is.null(fit$strata)) 
-    group_name <- substr(names(fit$strata)[1], 1, regexpr('=', names(fit$strata)[1]) - 1)
+    group_name <- gsub('_', ' ', substr(names(fit$strata)[1], 1, regexpr('=', names(fit$strata)[1]) - 1))
   
   # Getting specific time_est estimates
   tmp_summary <- summary(fit, time = time_est)
@@ -536,21 +544,35 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #'   kable_styling(font_size = 8.5) %>%
 #'   footnote(number = c('Kaplan–Meier Survival Percentage Estimates at 5 or 10 years, with 95% Confidence Intervals', 'N.E.:Not Estimable'))
 #' 
+#' 
+#' 
+#'   # Real World Example
+#'   data(Bladder_Cancer)
+#'   
+#'   vars_to_run = c(NA, 'Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
+#'   
+#'   purrr::map_dfr(vars_to_run, run_km_model, model_data = Bladder_Cancer, time_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"', time_est = c(24,60), surv_est_prefix = 'Month', p_digits=5) %>% 
+#'    select(Group, Level, everything())
+#'   
 #' @importFrom  Hmisc label
 #' 
 #' @export
 #' 
 run_km_model <- function(x_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 1, median_est_digits = 2, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
-
+  if (length(x_in) != 1) stop('"x_in" must be length of 1')
   .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
-  
+  if (all(time_in != colnames(model_data)))
+    stop('"time_in" must be in the "model_data" dataset')
+
   if (is.na(x_in)) {
     if (is.null(group_name)) group_name <- 'Overall'
     tmp_formula <- as.formula(paste("survival::Surv(",time_in,",",event_in,") ~ 1"))
   } else {
+    if (!all(na.omit(x_in) %in% colnames(model_data)))
+      stop('All variables used in the "x_in" must be in the "model_data" dataset')
     if (is.null(group_name)) {
       #Using label if possible
       if (Hmisc::label(model_data[,x_in]) != '') 
