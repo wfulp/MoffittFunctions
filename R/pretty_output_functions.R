@@ -591,7 +591,7 @@ run_km_model <- function(x_in = NA, model_data, time_in, event_in, time_est = NU
   }
   
   tmp_fit <- survival::survfit(tmp_formula, model_data)
-  tmp_km_output <- pretty_km_output(fit = tmp_fit, time_est = time_est, group_name = group_name, title_name = title_name)
+  tmp_km_output <- pretty_km_output(fit = tmp_fit, time_est = time_est, group_name = group_name, title_name = title_name, surv_est_prefix, surv_est_digits = surv_est_digits, median_est_digits = median_est_digits, latex_output = latex_output)
   
   if (is.na(x_in)) 
     tmp_km_output else 
