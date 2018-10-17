@@ -24,7 +24,8 @@
 #' @return data.frame with all the pasted values requested. Each name will have '_comparison' at the end of the names (i.e. mean_comparison, median_comparison, ...)
 #' @examples
 #'
-#'
+#' # Same examples on data.table
+#' library(data.table)
 #' data(exampleData_BAMA)
 #'
 #' descriptive_stats_by_group <- exampleData_BAMA[, .(
@@ -49,7 +50,7 @@
 #'    alternative = 'less', digits = 5, keep_all = FALSE)
 #'
 #'
-#' # Same example wit tidyverse (dplyr+tidyr) with some custom functions
+#' # Same example with tidyverse (dplyr+tidyr) with some custom functions
 #'
 #' library(dplyr)
 #' library(tidyr)
@@ -337,7 +338,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
   if (include_p) pvalues_new <- ifelse(pvalues_new < lower_cutoff, paste0('p',  pvalues_new), paste0('p=',  pvalues_new))
 
   # formatting
-  if (bold == TRUE | italic == TRUE | !is.null(background)) pvalues_new[sig_p] = cell_spec(pvalues_new[sig_p], format = "latex", bold = bold, italic = italic, background = background, escape = FALSE)
+  if (bold == TRUE | italic == TRUE | !is.null(background)) pvalues_new[sig_p] = kableExtra::cell_spec(pvalues_new[sig_p], format = "latex", bold = bold, italic = italic, background = background, escape = FALSE)
 
   pvalues_new
 }
