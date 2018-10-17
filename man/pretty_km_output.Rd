@@ -5,8 +5,8 @@
 \title{Fancy Table Output of KM (survfit) Fit}
 \usage{
 pretty_km_output(fit, time_est = NULL, group_name = NULL,
-  title_name = NULL, surv_est_prefix = "Time", surv_est_digits = 1,
-  median_est_digits = 2, latex_output = FALSE)
+  title_name = NULL, surv_est_prefix = "Time", surv_est_digits = 2,
+  median_est_digits = 1, latex_output = FALSE)
 }
 \arguments{
 \item{fit}{survfit object (with or without single strata variable)}

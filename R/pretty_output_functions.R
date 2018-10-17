@@ -409,7 +409,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' 
 #' @export
 
-pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 1, median_est_digits = 2, latex_output =FALSE){
+pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, latex_output =FALSE){
   # Input Checking
   if (!is.null(time_est)) {
     # Want to make sure time_est > 0
@@ -558,7 +558,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' 
 #' @export
 #' 
-run_km_model <- function(x_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 1, median_est_digits = 2, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+run_km_model <- function(x_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
   if (length(x_in) != 1) stop('"x_in" must be length of 1')
   .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)

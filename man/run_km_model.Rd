@@ -6,7 +6,7 @@
 \usage{
 run_km_model(x_in = NA, model_data, time_in, event_in, time_est = NULL,
   group_name = NULL, title_name = NULL, surv_est_prefix = "Time",
-  surv_est_digits = 1, median_est_digits = 2, p_digits = 4,
+  surv_est_digits = 2, median_est_digits = 1, p_digits = 4,
   latex_output = FALSE, sig_alpha = 0.05, background = "yellow", ...)
 }
 \arguments{
