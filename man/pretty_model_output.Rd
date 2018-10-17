@@ -4,9 +4,9 @@
 \alias{pretty_model_output}
 \title{Fancy Table Output of Linear, Logistic, and Cox Models}
 \usage{
-pretty_model_output(model_fit, model_data, est_digits = 3, p_digits = 4,
-  sig_alpha = 0.05, background = "yellow", overall_p_test_stat = c("Wald",
-  "LR"), ...)
+pretty_model_output(model_fit, model_data, est_digits = 3,
+  p_digits = 4, sig_alpha = 0.05, background = "yellow",
+  overall_p_test_stat = c("Wald", "LR"), ...)
 }
 \arguments{
 \item{model_fit}{lm, glm, or coxph fit (currently only tested on logistic glm fit)}
