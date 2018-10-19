@@ -18,7 +18,7 @@ cor_test(x, y, method = c("pearson", "kendall", "spearman"),
 
 \item{B}{number of reps (only used if \code{method = "spearman"})}
 
-\item{exact}{if no ties should you do exact (TRUE) or asymptotic (FALSE) method. Exact method is the default (only used if \code{method = "spearman" (and no ties) or "kendall"})}
+\item{exact}{Should exact method be used. Ingorned it \code{method = "spearman"} and ties present}
 
 \item{verbose}{a logical variable indicating if warnings and messages should be displayed}
 }

@@ -227,6 +227,6 @@ test_that("pretty_km_output and run_km_model testing", {
   expect_equal(object = pretty_km_output(fit = my_fit3, time_est = c(5,10), title_name = 'Overall Fit'), 
                expected = expected_output %>% select(-`Log-Rank P`))
   
-  expect_equal(object = run_km_model(x_in = 'x2', model_data = my_data, time_in = 'y', event_in = 'ybin', time_est = c(5,10), title_name = 'Overall Fit'), expected = expected_output)
+  expect_equal(object = run_km_model(strata_in = 'x2', model_data = my_data, time_in = 'y', event_in = 'ybin', time_est = c(5,10), title_name = 'Overall Fit'), expected = expected_output)
   
 })

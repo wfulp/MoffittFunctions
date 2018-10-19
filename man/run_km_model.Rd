@@ -4,15 +4,16 @@
 \alias{run_km_model}
 \title{Wrapper for KM Model Output, with Log-Rank p value}
 \usage{
-run_km_model(x_in = NA, model_data, time_in, event_in, time_est = NULL,
-  group_name = NULL, title_name = NULL, surv_est_prefix = "Time",
-  surv_est_digits = 2, median_est_digits = 1, p_digits = 4,
-  latex_output = FALSE, sig_alpha = 0.05, background = "yellow", ...)
+run_km_model(strata_in = NA, model_data, time_in, event_in,
+  time_est = NULL, group_name = NULL, title_name = NULL,
+  surv_est_prefix = "Time", surv_est_digits = 2,
+  median_est_digits = 1, p_digits = 4, latex_output = FALSE,
+  sig_alpha = 0.05, background = "yellow", ...)
 }
 \arguments{
-\item{x_in}{name of strata variable, or NA (default) if no strata desired}
+\item{strata_in}{name of strata variable, or NA (default) if no strata desired}
 
-\item{model_data}{dataset that contains \code{x_in}, \code{time_in}, and \code{event_in} variables}
+\item{model_data}{dataset that contains \code{strata_in}, \code{time_in}, and \code{event_in} variables}
 
 \item{time_in}{name of time variable component of outcome measure}
 
@@ -46,9 +47,6 @@ A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fi
 \description{
 This function takes a dataset, along with variables names for time and event status for KM fit, and possibly strata
 }
-\details{
-Currently works with multiple categorical variables used in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} columns may be off.
-}
 \examples{
 
 # Basic linear model example
@@ -62,28 +60,33 @@ my_data <- data.frame(y, ybin,ybin2, x1, x2)
 Hmisc::label(my_data$x1) <- "X1 Variable"
 
  # Single runs 
-run_km_model(x_in = 'x1', model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = NULL)
-run_km_model(x_in = 'x1', model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10))
+run_km_model(strata_in = 'x1', model_data = my_data, 
+     time_in = 'y', event_in = 'ybin == 1', time_est = NULL)
+run_km_model(strata_in = 'x1', model_data = my_data, 
+     time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10))
 
 # Multiple runs for different variables
 library(dplyr) 
 vars_to_run = c(NA, 'x1', 'x2')
-purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = NULL) \%>\% 
-   select(Group, Level, everything())
-km_info <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10), surv_est_prefix = 'Year', title_name = 'Overall Survival') \%>\% 
+purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data,
+     time_in = 'y', event_in = 'ybin == 1', time_est = NULL) \%>\% 
    select(Group, Level, everything())
    
-km_info2 <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin2 == 1', time_est = c(5,10), surv_est_prefix = 'Year', title_name = 'Cancer Specific Survival') \%>\% 
+km_info <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', 
+     event_in = 'ybin == 1', time_est = c(5,10), surv_est_prefix = 'Year', 
+     title_name = 'Overall Survival') \%>\% 
+   select(Group, Level, everything())
+   
+km_info2 <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', 
+     event_in = 'ybin2 == 1', time_est = c(5,10), surv_est_prefix = 'Year', 
+     title_name = 'Cancer Specific Survival') \%>\% 
    select(Group, Level, everything())
 
 library(kableExtra)
 options(knitr.kable.NA = '')
-kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\%
-  column_spec(3:4, width = "3em") \%>\%
-  collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major') \%>\%
-  kable_styling(font_size = 8.5) \%>\%
-  footnote(number = c('Kaplanâ€“Meier Survival Percentage Estimates at 5 or 10 years, with 95\% Confidence Intervals', 'N.E.:Not Estimable'))
-
+kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', 
+     caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\%
+  collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2) 
 
 
   # Real World Example
@@ -91,7 +94,9 @@ kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, 
   
   vars_to_run = c(NA, 'Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
   
-  purrr::map_dfr(vars_to_run, run_km_model, model_data = Bladder_Cancer, time_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"', time_est = c(24,60), surv_est_prefix = 'Month', p_digits=5) \%>\% 
+  purrr::map_dfr(vars_to_run, run_km_model, model_data = Bladder_Cancer, 
+       time_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"', time_est = c(24,60), 
+       surv_est_prefix = 'Month', p_digits=5) \%>\% 
    select(Group, Level, everything())
   
 }

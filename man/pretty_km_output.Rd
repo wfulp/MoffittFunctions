@@ -32,7 +32,7 @@ A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fi
 This function takes a Kaplan-Meier model fit object (from survival::survfit) and calculate survival estimates at a specified time, and Median Survival Estimates. This can be performed on an overall KM fit or a fit including a categorical variable (strata).
 }
 \details{
-Currently works with multiple categorical variables used in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} columns may be off.
+Currently works with multiple strata in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} column names may be off.
 }
 \examples{
 
@@ -52,24 +52,28 @@ pretty_km_output(fit = my_fit3, time_est = c(5,10), title_name = 'Overall Fit')
 
 library(dplyr) 
 km_info <- bind_rows(
-  pretty_km_output(fit = my_fit, time_est = c(5,10), group_name = 'Overall', title_name = 'Overall Survival---ybin'),
-  pretty_km_output(fit = my_fit2, time_est = c(5,10), group_name = NULL, title_name = 'Overall Survival---ybin'),
-  pretty_km_output(fit = my_fit3, time_est = c(5,10), group_name = 'x2', title_name = 'Overall Survival---ybin'),
-  pretty_km_output(fit = my_fit_y2, time_est = c(5,10), group_name = 'Overall', title_name = 'Overall Survival---ybin2'),
+  pretty_km_output(fit = my_fit, time_est = c(5,10), 
+        group_name = 'Overall', title_name = 'Overall Survival---ybin'),
+  pretty_km_output(fit = my_fit2, time_est = c(5,10), 
+        group_name = NULL, title_name = 'Overall Survival---ybin'),
+  pretty_km_output(fit = my_fit3, time_est = c(5,10), 
+        group_name = 'x2', title_name = 'Overall Survival---ybin'),
+  pretty_km_output(fit = my_fit_y2, time_est = c(5,10), 
+        group_name = 'Overall', title_name = 'Overall Survival---ybin2'),
 ) \%>\% select(Name, Group, Level, everything())
 
 library(kableExtra)
-kable(km_info, escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\% 
+kable(km_info, escape = F, longtable = F, booktabs = TRUE, linesep = '', 
+     caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\% 
   collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2) \%>\% 
-  kable_styling(font_size = 8.5) \%>\% 
-  footnote(number = c('Kaplanâ€“Meier Survival Percentage Estimates at 5 or 10 years, with 95\% Confidence Intervals'))
   
   # Real World Examples
   data(Bladder_Cancer)
   surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')   
   downstage_fit <- survival::survfit(surv_obj ~ PT0N0, data = Bladder_Cancer)
   
-  pretty_km_output(fit = downstage_fit, time_est = c(24, 60), surv_est_prefix = 'Month', surv_est_digits = 3)
+  pretty_km_output(fit = downstage_fit, time_est = c(24, 60), 
+       surv_est_prefix = 'Month', surv_est_digits = 3)
   
 
 }

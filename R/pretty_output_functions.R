@@ -361,7 +361,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @param latex_output will this table go into a latex output (making special charaters latex friendly)
 #' 
 #' @details 
-#' Currently works with multiple categorical variables used in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} columns may be off.
+#' Currently works with multiple strata in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} column names may be off.
 #' 
 #' @return
 #' A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Median Estimate}, \code{Time:X} (Survival estimates for each time provided, if any). In no strata variable tibble is one row, otherwise nrows = number of strata levels.
@@ -384,24 +384,28 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' 
 #' library(dplyr) 
 #' km_info <- bind_rows(
-#'   pretty_km_output(fit = my_fit, time_est = c(5,10), group_name = 'Overall', title_name = 'Overall Survival---ybin'),
-#'   pretty_km_output(fit = my_fit2, time_est = c(5,10), group_name = NULL, title_name = 'Overall Survival---ybin'),
-#'   pretty_km_output(fit = my_fit3, time_est = c(5,10), group_name = 'x2', title_name = 'Overall Survival---ybin'),
-#'   pretty_km_output(fit = my_fit_y2, time_est = c(5,10), group_name = 'Overall', title_name = 'Overall Survival---ybin2'),
+#'   pretty_km_output(fit = my_fit, time_est = c(5,10), 
+#'         group_name = 'Overall', title_name = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit2, time_est = c(5,10), 
+#'         group_name = NULL, title_name = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit3, time_est = c(5,10), 
+#'         group_name = 'x2', title_name = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit_y2, time_est = c(5,10), 
+#'         group_name = 'Overall', title_name = 'Overall Survival---ybin2'),
 #' ) %>% select(Name, Group, Level, everything())
 #' 
 #' library(kableExtra)
-#' kable(km_info, escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') %>% 
+#' kable(km_info, escape = F, longtable = F, booktabs = TRUE, linesep = '', 
+#'      caption = 'Survival Percentage Estimates at 5 and 10 Years') %>% 
 #'   collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2) %>% 
-#'   kable_styling(font_size = 8.5) %>% 
-#'   footnote(number = c('Kaplan–Meier Survival Percentage Estimates at 5 or 10 years, with 95% Confidence Intervals'))
 #'   
 #'   # Real World Examples
 #'   data(Bladder_Cancer)
 #'   surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')   
 #'   downstage_fit <- survival::survfit(surv_obj ~ PT0N0, data = Bladder_Cancer)
 #'   
-#'   pretty_km_output(fit = downstage_fit, time_est = c(24, 60), surv_est_prefix = 'Month', surv_est_digits = 3)
+#'   pretty_km_output(fit = downstage_fit, time_est = c(24, 60), 
+#'        surv_est_prefix = 'Month', surv_est_digits = 3)
 #'   
 #' 
 #' @importFrom  dplyr %>%
@@ -486,8 +490,8 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' 
 #' This function takes a dataset, along with variables names for time and event status for KM fit, and possibly strata
 #'
-#' @param x_in name of strata variable, or NA (default) if no strata desired
-#' @param model_data dataset that contains \code{x_in}, \code{time_in}, and \code{event_in} variables
+#' @param strata_in name of strata variable, or NA (default) if no strata desired
+#' @param model_data dataset that contains \code{strata_in}, \code{time_in}, and \code{event_in} variables
 #' @param time_in name of time variable component of outcome measure
 #' @param event_in name of T/F event stauts or expression resulting in T/F scalor (i.e. "Vital_Status == 'Dead'") for the name of event variable component of outcome measure. TRUE represents event (i.e. Death)
 #' @param time_est numerical vector of time estimates. If NULL (default) no time estimates are calculated
@@ -502,10 +506,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' @param background background color of significant values, or no highlighting if NULL. Default is "yellow"
 #' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})
 #
-#' 
-#' @details 
-#' Currently works with multiple categorical variables used in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} columns may be off.
-#' 
+#'  
 #' @return
 #' A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
 #' 
@@ -522,28 +523,33 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' Hmisc::label(my_data$x1) <- "X1 Variable"
 #' 
 #'  # Single runs 
-#' run_km_model(x_in = 'x1', model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = NULL)
-#' run_km_model(x_in = 'x1', model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10))
+#' run_km_model(strata_in = 'x1', model_data = my_data, 
+#'      time_in = 'y', event_in = 'ybin == 1', time_est = NULL)
+#' run_km_model(strata_in = 'x1', model_data = my_data, 
+#'      time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10))
 #' 
 #' # Multiple runs for different variables
 #' library(dplyr) 
 #' vars_to_run = c(NA, 'x1', 'x2')
-#' purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = NULL) %>% 
-#'    select(Group, Level, everything())
-#' km_info <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10), surv_est_prefix = 'Year', title_name = 'Overall Survival') %>% 
+#' purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data,
+#'      time_in = 'y', event_in = 'ybin == 1', time_est = NULL) %>% 
 #'    select(Group, Level, everything())
 #'    
-#' km_info2 <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', event_in = 'ybin2 == 1', time_est = c(5,10), surv_est_prefix = 'Year', title_name = 'Cancer Specific Survival') %>% 
+#' km_info <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', 
+#'      event_in = 'ybin == 1', time_est = c(5,10), surv_est_prefix = 'Year', 
+#'      title_name = 'Overall Survival') %>% 
+#'    select(Group, Level, everything())
+#'    
+#' km_info2 <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', 
+#'      event_in = 'ybin2 == 1', time_est = c(5,10), surv_est_prefix = 'Year', 
+#'      title_name = 'Cancer Specific Survival') %>% 
 #'    select(Group, Level, everything())
 #' 
 #' library(kableExtra)
 #' options(knitr.kable.NA = '')
-#' kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'Survival Percentage Estimates at 5 and 10 Years') %>%
-#'   column_spec(3:4, width = "3em") %>%
-#'   collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major') %>%
-#'   kable_styling(font_size = 8.5) %>%
-#'   footnote(number = c('Kaplan–Meier Survival Percentage Estimates at 5 or 10 years, with 95% Confidence Intervals', 'N.E.:Not Estimable'))
-#' 
+#' kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', 
+#'      caption = 'Survival Percentage Estimates at 5 and 10 Years') %>%
+#'   collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2) 
 #' 
 #' 
 #'   # Real World Example
@@ -551,15 +557,17 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #'   
 #'   vars_to_run = c(NA, 'Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
 #'   
-#'   purrr::map_dfr(vars_to_run, run_km_model, model_data = Bladder_Cancer, time_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"', time_est = c(24,60), surv_est_prefix = 'Month', p_digits=5) %>% 
+#'   purrr::map_dfr(vars_to_run, run_km_model, model_data = Bladder_Cancer, 
+#'        time_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"', time_est = c(24,60), 
+#'        surv_est_prefix = 'Month', p_digits=5) %>% 
 #'    select(Group, Level, everything())
 #'   
 #' @importFrom  Hmisc label
 #' 
 #' @export
 #' 
-run_km_model <- function(x_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
-  if (length(x_in) != 1) stop('"x_in" must be length of 1')
+run_km_model <- function(strata_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+  if (length(strata_in) != 1) stop('"strata_in" must be length of 1')
   .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
@@ -567,19 +575,19 @@ run_km_model <- function(x_in = NA, model_data, time_in, event_in, time_est = NU
   if (all(time_in != colnames(model_data)))
     stop('"time_in" must be in the "model_data" dataset')
 
-  if (is.na(x_in)) {
+  if (is.na(strata_in)) {
     if (is.null(group_name)) group_name <- 'Overall'
     tmp_formula <- as.formula(paste("survival::Surv(",time_in,",",event_in,") ~ 1"))
   } else {
-    if (!all(na.omit(x_in) %in% colnames(model_data)))
-      stop('All variables used in the "x_in" must be in the "model_data" dataset')
+    if (!all(na.omit(strata_in) %in% colnames(model_data)))
+      stop('All variables used in the "strata_in" must be in the "model_data" dataset')
     if (is.null(group_name)) {
       #Using label if possible
-      if (Hmisc::label(model_data[,x_in]) != '') 
-        group_name <- Hmisc::label(model_data[,x_in]) 
-      else group_name <- gsub('_', ' ', x_in)
+      if (Hmisc::label(model_data[,strata_in]) != '') 
+        group_name <- Hmisc::label(model_data[,strata_in]) 
+      else group_name <- gsub('_', ' ', strata_in)
     }
-    tmp_formula <- as.formula(paste("survival::Surv(",time_in,",",event_in,") ~ ", x_in))
+    tmp_formula <- as.formula(paste("survival::Surv(",time_in,",",event_in,") ~ ", strata_in))
     tmp_pval <-  pchisq(survival::survdiff(formula = tmp_formula, data = model_data)$chi, 
                         length(survival::survdiff(formula = tmp_formula, data = model_data)$n) - 1, 
                         lower.tail = FALSE)
@@ -593,7 +601,7 @@ run_km_model <- function(x_in = NA, model_data, time_in, event_in, time_est = NU
   tmp_fit <- survival::survfit(tmp_formula, model_data)
   tmp_km_output <- pretty_km_output(fit = tmp_fit, time_est = time_est, group_name = group_name, title_name = title_name, surv_est_prefix, surv_est_digits = surv_est_digits, median_est_digits = median_est_digits, latex_output = latex_output)
   
-  if (is.na(x_in)) 
+  if (is.na(strata_in)) 
     tmp_km_output else 
       dplyr::bind_cols(tmp_km_output, `Log-Rank P` = c(tmp_p_info, rep('', nrow(tmp_km_output) - 1)))
   
