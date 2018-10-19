@@ -189,3 +189,76 @@ test_that("pretty_pvalues testing various options (no errors)", {
 
 })
 
+
+
+test_that("pretty_model_output", {
+  set.seed(542542522)
+  ybin <- sample(0:1, 100, replace = TRUE)
+  y <- rexp(100,.1)
+  x1 <- rnorm(100)
+  x2 <- y + rnorm(100)
+  x3 <- factor(sample(letters[1:4],100,replace = TRUE))
+  my_model_data <- data.frame(y, ybin, x1, x2, x3)
+  
+  ### Linear Regression
+  my_fit_linear <- lm(y ~ x1 + x2 + x3, data = my_model_data)
+  # Getting output by hand for my_fit3 for 5 and 10 estimates
+  expected_output_linear <- tibble::tibble(
+    Name = rep('Overall Fit', 1 + 1 + nlevels(x3)), 
+    Variable = c('x1', 'x2', rep('x3', nlevels(x3))), 
+    Level = c('', '', levels(x3)), 
+    `Est (95% CI)` = c(stat_paste(summary(my_fit_linear)$coef[2:3,'Estimate'], 
+                                confint(my_fit_linear)[2:3,1], confint(my_fit_linear)[2:3,2], 
+                                digits = 3, trailing_zeros = TRUE),
+                       '1.0 (Reference)',
+                       stat_paste(summary(my_fit_linear)$coef[4:6,'Estimate'], 
+                                  confint(my_fit_linear)[4:6,1], confint(my_fit_linear)[4:6,2], 
+                                  digits = 3, trailing_zeros = TRUE)),
+    `P Value` = pretty_pvalues(summary(my_fit_linear)$coef[c(2:3,NA,4:6),'Pr(>|t|)'], missing_char = '-', digits = 4),
+    `Overall P Value` = c('','',pretty_pvalues(car::Anova(my_fit_linear, type = 'III')[4,'Pr(>F)'], digits = 4),'','','')
+  )
+  
+  expect_equal(object = pretty_model_output(fit = my_fit_linear, model_data = my_model_data, title_name = 'Overall Fit'), 
+               expected = expected_output_linear)
+  
+  
+  ### Logistic Regression (also testing different rounding digit params)
+  my_fit_logistic <- glm(ybin ~ x1 + x2 + x3, data = my_model_data, family = binomial(link = "logit"))
+  expected_output_logistic <- tibble::tibble(
+    Variable = c('x1', 'x2', rep('x3', nlevels(x3))), 
+    Level = c('', '', levels(x3)), 
+    `OR (95% CI)` = c(stat_paste(exp(summary(my_fit_logistic)$coef[2:3,'Estimate']), 
+                                  exp(confint(my_fit_logistic)[2:3,1]), exp(confint(my_fit_logistic)[2:3,2]), 
+                                  digits = 4, trailing_zeros = TRUE),
+                       '1.0 (Reference)',
+                       stat_paste(exp(summary(my_fit_logistic)$coef[4:6,'Estimate']), 
+                                      exp(confint(my_fit_logistic)[4:6,1]), exp(confint(my_fit_logistic)[4:6,2]), 
+                                  digits = 4, trailing_zeros = TRUE)),
+    `P Value` = pretty_pvalues(summary(my_fit_logistic)$coef[c(2:3,NA,4:6),'Pr(>|z|)'], missing_char = '-', digits = 3),
+    `Overall P Value` = c('','',pretty_pvalues(car::Anova(my_fit_logistic, type = 'III', test.statistic = 'Wald')[4,'Pr(>Chisq)'], digits = 3),'','','')
+  )
+  
+  expect_equal(object = pretty_model_output(fit = my_fit_logistic, model_data = my_model_data, est_digits = 4, p_digits = 3), 
+               expected = expected_output_logistic)
+  
+
+  ### Cox Regression (also testing latex_output param)
+  my_fit_cox <- survival::coxph(survival::Surv(y, ybin) ~ x1 + x2 + x3, data = my_model_data)
+  expected_output_cox <- tibble::tibble(
+    Variable = c('x1', 'x2', rep('x3', nlevels(x3))), 
+    Level = c('', '', levels(x3)), 
+    `HR (95\\% CI)` = c(stat_paste(exp(summary(my_fit_cox)$coef[1:2,'coef']), 
+                                 exp(confint(my_fit_cox)[1:2,1]), exp(confint(my_fit_cox)[1:2,2]), 
+                                 digits = 3, trailing_zeros = TRUE),
+                      '1.0 (Reference)',
+                      stat_paste(exp(summary(my_fit_cox)$coef[3:5,'coef']), 
+                                 exp(confint(my_fit_cox)[3:5,1]), exp(confint(my_fit_cox)[3:5,2]), 
+                                 digits = 3, trailing_zeros = TRUE)),
+    `P Value` = pretty_pvalues(summary(my_fit_cox)$coef[c(1:2,NA,3:5),'Pr(>|z|)'], missing_char = '---', digits = 4, background = 'yellow'),
+    `Overall P Value` = c('','',pretty_pvalues(car::Anova(my_fit_cox, type = 'III', test.statistic = 'Wald')[3,'Pr(>Chisq)'], digits = 4),'','','')
+  )
+  
+  expect_equal(object = pretty_model_output(fit = my_fit_cox, model_data = my_model_data, latex_output = TRUE), 
+               expected = expected_output_cox)
+  
+})

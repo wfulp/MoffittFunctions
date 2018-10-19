@@ -4,59 +4,72 @@
 \alias{pretty_model_output}
 \title{Fancy Table Output of Linear, Logistic, and Cox Models}
 \usage{
-pretty_model_output(model_fit, model_data, est_digits = 3,
-  p_digits = 4, sig_alpha = 0.05, background = "yellow",
-  overall_p_test_stat = c("Wald", "LR"), ...)
+pretty_model_output(fit, model_data, overall_p_test_stat = c("Wald",
+  "LR"), title_name = NULL, est_digits = 3, p_digits = 4,
+  latex_output = FALSE, sig_alpha = 0.05, background = "yellow", ...)
 }
 \arguments{
-\item{model_fit}{lm, glm, or coxph fit (currently only tested on logistic glm fit)}
+\item{fit}{lm, glm, or coxph fit (currently only tested on logistic glm fit)}
 
 \item{model_data}{dataset used to create model fits. Used for capturing variable labels, if they exist}
 
-\item{est_digits}{number of digits to round OR or HR to}
+\item{overall_p_test_stat}{"Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova. Ignored for lm fits.}
 
-\item{p_digits}{number of digits to round p values}
+\item{title_name}{title to use (will be repeated in first column)}
 
-\item{sig_alpha}{the defined significance level. Default = 0.05}
+\item{est_digits}{number of digits to round OR or HR to (default is 3)}
 
-\item{background}{background color of significant values, or no highlighting if NULL. Default is "yellow"}
+\item{p_digits}{number of digits to round p values (default is 4)}
 
-\item{overall_p_test_stat}{"Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova}
+\item{latex_output}{will this table go into a latex output (making special charaters latex friendly)}
 
-\item{...}{other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})}
+\item{sig_alpha}{the defined significance level for highlighting. Default = 0.05 (Only used if latex_output = TRUE)}
+
+\item{background}{background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if latex_output = TRUE)}
+
+\item{...}{other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic}) (Only used if latex_output = TRUE)}
 }
 \description{
 pretty_model_output() takes a Linear, Logistic, and Cox model fit object and calculate estimates, odds ratios, or hazard ratios, respectively, with confidence intervals. P values are also produced. For categorical variables with 3+ levels overall Type 3 p values are calculated.
+}
+\details{
+Model type is determined by \code{fit} class, and also family if glm class. If the class is glm and  binomial or quasibinomial family, then the output is designed for a Logistic model (i.e. Odd Ratios), if the class is coxph the output is designed for a Cox model (i.e. Harzard Ratios), otherwise the output is designed for a linear model or other model where normal coefficient estimates are displayed.
 }
 \examples{
 
 # Basic linear model example
 set.seed(542542522)
-y_bin <- sample(0:1, 100, replace = TRUE)
-y <- rnorm(100,20)
+ybin <- sample(0:1, 100, replace = TRUE)
+y <- rexp(100,.1)
 x1 <- rnorm(100)
 x2 <- y + rnorm(100)
 x3 <- factor(sample(letters[1:4],100,replace = TRUE))
-my_model_data <- data.frame(y, y_bin, x1, x2, x3)
+my_model_data <- data.frame(y, ybin, x1, x2, x3)
 
 # Linear Regression
-my_model_fit <- lm(y ~ x1 + x2 + x3, data = my_model_data)
-my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
+my_fit <- lm(y ~ x1 + x2 + x3, data = my_model_data)
+pretty_model_output(fit = my_fit, model_data = my_model_data)
 
 # Logistic Regression
-my_model_fit <- glm(y_bin ~ x1 + x2 + x3, data = my_model_data, family = binomial(link = "logit"))
-my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
+my_fit <- glm(ybin ~ x1 + x2 + x3, data = my_model_data, family = binomial(link = "logit"))
+pretty_model_output(fit = my_fit, model_data = my_model_data)
 
 # Coxph Regression
-my_model_fit <- survival::coxph(survival::Surv(y, y_bin) ~ x1 + x2 + x3, data = my_model_data)
-my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
+my_fit <- survival::coxph(survival::Surv(y, ybin) ~ x1 + x2 + x3, data = my_model_data)
+my_pretty_model_output <- pretty_model_output(fit = my_fit, model_data = my_model_data)
 
-# Printing of Fancy table in Latex
-kableExtra::kable(my_pretty_model_output \%>\% select(-line_ind), 
-                  'latex', escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Fig') \%>\% 
-  kableExtra::row_spec(which(my_pretty_model_output$line_ind), hline_after = T)  \%>\% 
-  kableExtra::kable_styling(font_size = 9) \%>\% 
-  kableExtra::footnote(number = c('Model predicting y', paste0('Model sample size is n=',nrow(my_model_fit$model))))
-
-
+# Printing of Fancy table in HTML
+library(magrittr)
+library(kableExtra)
+kable(my_pretty_model_output, 'html',escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Fig') \%>\% 
+  collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major') \%>\%
+  kable_styling(font_size = 9) \%>\% 
+  footnote(number = c('Model predicting y', paste0('Model sample size is n=',nrow(my_fit$model))))
+  
+  # Real World Examples
+  data(Bladder_Cancer)
+  surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')  
+  my_fit <- survival::coxph(surv_obj ~ Gender + Clinical_Stage_Grouped + PT0N0, data = Bladder_Cancer)
+  pretty_model_output(fit = my_fit, model_data = Bladder_Cancer)
+  
 }

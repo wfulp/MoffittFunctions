@@ -10,12 +10,14 @@ License: GPL-3
 LazyData: true
 Imports: 
     broom (>= 0.5.0),
+    car,
     coin,
     data.table,
     dplyr,
     Exact,
     Hmisc,
     kableExtra,
+    magrittr,
     purrr,
     survival,
     tibble,

@@ -306,7 +306,6 @@ stat_paste = function(stat1, stat2 = NULL, stat3 = NULL, digits = 0, trailing_ze
 #' pretty_pvals <- pretty_pvalues(raw_pvals , digits = 3, background = "green", italic = TRUE, bold = TRUE)
 #' kableExtra::kable(pretty_pvals , format = "latex", escape = FALSE, col.names = c("P-values"))
 #'
-#' @import kableExtra
 #' @export
 
 
@@ -350,57 +349,76 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' 
 #' pretty_model_output() takes a Linear, Logistic, and Cox model fit object and calculate estimates, odds ratios, or hazard ratios, respectively, with confidence intervals. P values are also produced. For categorical variables with 3+ levels overall Type 3 p values are calculated.
 #'
-#' @param model_fit lm, glm, or coxph fit (currently only tested on logistic glm fit)
+#' @param fit lm, glm, or coxph fit (currently only tested on logistic glm fit)
 #' @param model_data dataset used to create model fits. Used for capturing variable labels, if they exist
-#' @param est_digits number of digits to round OR or HR to
-#' @param p_digits number of digits to round p values
-#' @param sig_alpha the defined significance level. Default = 0.05
-#' @param background background color of significant values, or no highlighting if NULL. Default is "yellow"
-#' @param overall_p_test_stat "Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova
-#' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})
+#' @param overall_p_test_stat "Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova. Ignored for lm fits.
+#' @param title_name title to use (will be repeated in first column)
+#' @param est_digits number of digits to round OR or HR to (default is 3)
+#' @param p_digits number of digits to round p values (default is 4)
+#' @param latex_output will this table go into a latex output (making special charaters latex friendly)
+#' @param sig_alpha the defined significance level for highlighting. Default = 0.05 (Only used if latex_output = TRUE)
+#' @param background background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if latex_output = TRUE)
+#' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic}) (Only used if latex_output = TRUE)
+#' 
+#' @details 
+#' 
+#' Model type is determined by \code{fit} class, and also family if glm class. If the class is glm and  binomial or quasibinomial family, then the output is designed for a Logistic model (i.e. Odd Ratios), if the class is coxph the output is designed for a Cox model (i.e. Harzard Ratios), otherwise the output is designed for a linear model or other model where normal coefficient estimates are displayed.
 #' 
 #' @examples
 #' 
 #' # Basic linear model example
 #' set.seed(542542522)
-#' y_bin <- sample(0:1, 100, replace = TRUE)
-#' y <- rnorm(100,20)
+#' ybin <- sample(0:1, 100, replace = TRUE)
+#' y <- rexp(100,.1)
 #' x1 <- rnorm(100)
 #' x2 <- y + rnorm(100)
 #' x3 <- factor(sample(letters[1:4],100,replace = TRUE))
-#' my_model_data <- data.frame(y, y_bin, x1, x2, x3)
+#' my_model_data <- data.frame(y, ybin, x1, x2, x3)
 #' 
 #' # Linear Regression
-#' my_model_fit <- lm(y ~ x1 + x2 + x3, data = my_model_data)
-#' my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
+#' my_fit <- lm(y ~ x1 + x2 + x3, data = my_model_data)
+#' pretty_model_output(fit = my_fit, model_data = my_model_data)
 #' 
 #' # Logistic Regression
-#' my_model_fit <- glm(y_bin ~ x1 + x2 + x3, data = my_model_data, family = binomial(link = "logit"))
-#' my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
+#' my_fit <- glm(ybin ~ x1 + x2 + x3, data = my_model_data, family = binomial(link = "logit"))
+#' pretty_model_output(fit = my_fit, model_data = my_model_data)
 #' 
 #' # Coxph Regression
-#' my_model_fit <- survival::coxph(survival::Surv(y, y_bin) ~ x1 + x2 + x3, data = my_model_data)
-#' my_pretty_model_output <- pretty_model_output(model_fit = my_model_fit, model_data = my_model_data)
+#' my_fit <- survival::coxph(survival::Surv(y, ybin) ~ x1 + x2 + x3, data = my_model_data)
+#' my_pretty_model_output <- pretty_model_output(fit = my_fit, model_data = my_model_data)
 #' 
-#' # Printing of Fancy table in Latex
-#' kableExtra::kable(my_pretty_model_output %>% select(-line_ind), 
-#'                   'latex', escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Fig') %>% 
-#'   kableExtra::row_spec(which(my_pretty_model_output$line_ind), hline_after = T)  %>% 
-#'   kableExtra::kable_styling(font_size = 9) %>% 
-#'   kableExtra::footnote(number = c('Model predicting y', paste0('Model sample size is n=',nrow(my_model_fit$model))))
-#' 
+#' # Printing of Fancy table in HTML
+#' library(magrittr)
+#' library(kableExtra)
+#' kable(my_pretty_model_output, 'html',escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Fig') %>% 
+#'   collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major') %>%
+#'   kable_styling(font_size = 9) %>% 
+#'   footnote(number = c('Model predicting y', paste0('Model sample size is n=',nrow(my_fit$model))))
+#'   
+#'   # Real World Examples
+#'   data(Bladder_Cancer)
+#'   surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')  
+#'   my_fit <- survival::coxph(surv_obj ~ Gender + Clinical_Stage_Grouped + PT0N0, data = Bladder_Cancer)
+#'   pretty_model_output(fit = my_fit, model_data = Bladder_Cancer)
+#'   
+#' @import car
+#' @importFrom Hmisc label label<-
+#' @importFrom magrittr %>%
 #' 
 #' @export
 
 
-pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits = 4, sig_alpha = 0.05, background = 'yellow', overall_p_test_stat = c('Wald', 'LR'), ...) {
+pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald', 'LR'), title_name = NULL, est_digits = 3, p_digits = 4, latex_output =FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
   overall_p_test_stat <- match.arg(overall_p_test_stat)
-
-  if (any(class(model_fit) == 'glm') && model_fit$family$family %in% c('binomial', 'quasibinomial')) {
+  .check_numeric_input(est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
+  
+  if (any(class(fit) == 'glm') && fit$family$family %in% c('binomial', 'quasibinomial')) {
     # Logistic Regression
     exp_output <- TRUE
     est_name <- 'OR'
-  } else if (any(class(model_fit) == 'coxph')) {
+  } else if (any(class(fit) == 'coxph')) {
     # Coxph Regression
     exp_output <- TRUE
     est_name <- 'HR'
@@ -411,32 +429,40 @@ pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits 
   } 
 
   #Using Variable labels for output, is no label using variable name
-  var_names <- all.vars(model_fit$terms)[-1]
+  var_names <- all.vars(fit$terms)[-1]
   if (!all(var_names %in% colnames(model_data)))
-    stop('All variables used in the "model_fit" must be in the "model_data" dataset')
+    stop('All variables used in the "fit" must be in the "model_data" dataset')
   var_labels <- Hmisc::label(model_data)[var_names]
   if (any(var_labels == ''))
     var_labels[var_labels == ''] <- gsub('_', ' ', var_names[var_labels == ''])
   
- 
-  neat_fit = model_fit %>% broom::tidy(conf.int = TRUE, exponentiate = exp_output) %>%
-    mutate(p.label = pretty_pvalues(p.value, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = background, ...)) %>%
-    select(variable = term, est = estimate, p.label, p.value, conf.low, conf.high) %>%
-    filter(variable != "(Intercept)")
+  
+  neat_fit = fit %>% broom::tidy(conf.int = TRUE, exponentiate = exp_output) 
+  
+  if (latex_output) {
+    # P value highlighting if using for pdf output (latex)
+    neat_fit$p.label = pretty_pvalues(neat_fit$p.value, digits = p_digits, trailing_zeros = TRUE, sig_alpha = sig_alpha, background = background, ...) 
+  } else {
+    neat_fit$p.label = pretty_pvalues(neat_fit$p.value, digits = p_digits, trailing_zeros = TRUE)
+  }
+  
+  neat_fit <- neat_fit %>%
+    dplyr::select(variable = term, est = estimate, p.label, p.value, conf.low, conf.high) %>%
+    dplyr::filter(variable != "(Intercept)")
   
   
-  if (length(model_fit$xlevels) > 0) {
-    all_levels = model_fit$xlevels %>% tibble::enframe() %>% unnest() %>%
-      mutate(variable = paste0(name, value))
+  if (length(fit$xlevels) > 0) {
+    all_levels = fit$xlevels %>% tibble::enframe() %>% tidyr::unnest() %>%
+      dplyr::mutate(variable = paste0(name, value))
     
-    neat_fit <- full_join( all_levels, neat_fit, by = "variable") %>%
-      mutate(
+    neat_fit <- dplyr::full_join(all_levels, neat_fit, by = "variable") %>%
+      dplyr::mutate(
         name = ifelse(is.na(name), variable, name),
         value = ifelse(is.na(value), '', value)
       )
   } else {
     neat_fit <- neat_fit %>%
-      mutate(
+      dplyr::mutate(
         name = variable,
         value = ''
       )
@@ -444,38 +470,49 @@ pretty_model_output <- function(model_fit, model_data, est_digits = 3, p_digits 
   }
   
   neat_fit <- neat_fit %>%
-    mutate(
+    dplyr::mutate(
       est.label = ifelse(is.na(est), "1.0 (Reference)",
                          stat_paste(est, conf.low, conf.high, digits = est_digits, trailing_zeros = TRUE)),
-      p.label = ifelse(is.na(p.label), '-', p.label),
+      p.label = ifelse(is.na(p.label), ifelse(latex_output, '---', '-'), p.label)
     ) %>%
-    select(Variable_all = name, Level = value, Est_CI = est.label, `P Value` = p.label) %>%
-    arrange(factor(Variable_all, levels = var_names)) %>% 
-    rename(!!paste0(est_name, ' (95\\% CI)') := Est_CI)
+    dplyr::select(name, Level = value, Est_CI = est.label, `P Value` = p.label) %>%
+    dplyr::arrange(factor(name, levels = var_names)) %>% 
+    dplyr::rename(!!paste0(est_name, ifelse(latex_output, ' (95\\% CI)', ' (95% CI)')) := Est_CI)
   
-  # Dropping extra variable names
+  # Dropping extra variable names (for overall p merging)
   neat_fit <- neat_fit %>%
-    mutate(Variable_sub = ifelse(duplicated(Variable_all), '', Variable_all),
-           Variable = ifelse(Variable_sub == '', '', var_labels[match(Variable_sub,var_names)]))
+   dplyr::mutate(name_sub = ifelse(duplicated(name), '', name),
+          Variable = var_labels[match(name,var_names)])
   
   ## Type III Overall variable tests
   
   # Getting which vars we need overall tests for
-  overall_vars_needed <- neat_fit %>% group_by(Variable_all) %>% summarise(run_var = n() > 2)
+  overall_vars_needed <- neat_fit %>% dplyr::group_by(name) %>% dplyr::summarise(run_var = n() > 2)
   
   if (any(overall_vars_needed$run_var)) {
-    type3_tests <- full_join(broom::tidy(car::Anova(model_fit, type = 'III', test.statistic = overall_p_test_stat)),
-                             overall_vars_needed, by = c('term' = 'Variable_all')) %>%
-      filter(term != "(Intercept)" & run_var) %>%
-      mutate(overall.p.label = pretty_pvalues(p.value, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = background, ...)) %>%
-      select(variable = term, `Overall P Value` = overall.p.label)
+    type3_tests <- dplyr::full_join(broom::tidy(car::Anova(fit, type = 'III', test.statistic = overall_p_test_stat)),
+                                    overall_vars_needed, by = c('term' = 'name'))
     
-    neat_fit <- full_join(neat_fit, type3_tests, by = c("Variable_sub" = "variable")) %>%
-      mutate(`Overall P Value` = ifelse(is.na(`Overall P Value`), '', `Overall P Value`))
+    if (latex_output) {
+      # P value highlighting if using for pdf output (latex)
+      type3_tests$overall.p.label = pretty_pvalues(type3_tests$p.value, digits = p_digits, 
+                                                   trailing_zeros = TRUE, sig_alpha = sig_alpha, background = background, ...) 
+    } else {
+      type3_tests$overall.p.label = pretty_pvalues(type3_tests$p.value, digits = p_digits, trailing_zeros = TRUE)
+    }
+    
+    type3_tests <- type3_tests %>% 
+      dplyr::filter(term != "(Intercept)" & run_var) %>%
+      dplyr::select(variable = term, `Overall P Value` = overall.p.label)
+    
+    neat_fit <- dplyr::full_join(neat_fit, type3_tests, by = c("name_sub" = "variable")) %>%
+      dplyr::mutate(`Overall P Value` = ifelse(is.na(`Overall P Value`), '', `Overall P Value`))
   }
   
-  neat_fit  %>% group_by(Variable_all) %>%
-    mutate(line_ind = seq_len(n()) == n()) %>% ungroup() %>%
-    select(Variable, Level, contains('CI'), contains('P Value'), line_ind)
+  neat_fit <- neat_fit %>% dplyr::select(Variable, Level, dplyr::contains('CI'), dplyr::contains('P Value'))
+ 
+  # Adding Title in front, if given
+  if (!is.null(title_name)) dplyr::bind_cols(Name = rep(title_name,nrow(neat_fit)), neat_fit) else neat_fit
   
 }
+
