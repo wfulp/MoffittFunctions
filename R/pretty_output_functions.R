@@ -573,6 +573,7 @@ run_km_model <- function(strata_in = NA, model_data, time_in, event_in, time_est
   .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
+  .check_numeric_input(conf_level, lower_bound = 0, upper_bound = 1, scalar = TRUE)
   if (all(time_in != colnames(model_data)))
     stop('"time_in" must be in the "model_data" dataset')
 
