@@ -352,7 +352,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @param fit lm, glm, or coxph fit (currently only tested on logistic glm fit)
 #' @param model_data data.frame or tibble  used to create model fits. Used for capturing variable labels, if they exist
 #' @param title_name title to use (will be repeated in first column)
-#' @param conf.level the confidence level required (default is 0.95).
+#' @param conf_level the confidence level required (default is 0.95).
 #' @param overall_p_test_stat "Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova. Ignored for lm fits.
 #' @param est_digits number of digits to round OR or HR to (default is 3)
 #' @param p_digits number of digits to round p values (default is 4)
@@ -408,12 +408,12 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @export
 
 
-pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald', 'LR'), title_name = NULL, conf.level = 0.95, est_digits = 3, p_digits = 4, latex_output =FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald', 'LR'), title_name = NULL, conf_level = 0.95, est_digits = 3, p_digits = 4, latex_output =FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
   overall_p_test_stat <- match.arg(overall_p_test_stat)
   .check_numeric_input(est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
-  .check_numeric_input(conf.level, lower_bound = 0, upper_bound = 1, scalar = TRUE)
+  .check_numeric_input(conf_level, lower_bound = 0, upper_bound = 1, scalar = TRUE)
   
   if (any(class(fit) == 'glm') && fit$family$family %in% c('binomial', 'quasibinomial')) {
     # Logistic Regression
@@ -438,7 +438,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
     var_labels[var_labels == ''] <- gsub('_', ' ', var_names[var_labels == ''])
   
   
-  neat_fit = fit %>% broom::tidy(conf.int = TRUE, exponentiate = exp_output, conf.level = conf.level) 
+  neat_fit = fit %>% broom::tidy(conf.int = TRUE, exponentiate = exp_output, conf.level = conf_level) 
   
   if (latex_output) {
     # P value highlighting if using for pdf output (latex)
@@ -477,7 +477,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
     ) %>%
     dplyr::select(name, Level = value, Est_CI = est.label, `P Value` = p.label) %>%
     dplyr::arrange(factor(name, levels = var_names)) %>% 
-    dplyr::rename(!!paste0(est_name, paste0(' (', round_away_0(conf.level, 2) * 100, ifelse(latex_output, '\\', '')), '% CI)') := Est_CI)
+    dplyr::rename(!!paste0(est_name, paste0(' (', round_away_0(conf_level, 2) * 100, ifelse(latex_output, '\\', '')), '% CI)') := Est_CI)
   
   # Dropping extra variable names (for overall p merging)
   neat_fit <- neat_fit %>%
@@ -531,7 +531,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' @param event_in name of T/F event stauts or expression resulting in T/F scalor (i.e. "Vital_Status == 'Dead'") for the name of event variable component of outcome measure. TRUE represents event (i.e. Death)
 #' @param title_name title to use (will be repeated in first column)
 #' @param fail_if_warning Should program stop and give useful message if there is a warning message when running model (Default is TRUE)
-#' @param conf.level the confidence level required (default is 0.95).
+#' @param conf_level the confidence level required (default is 0.95).
 #' @param overall_p_test_stat "Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova. Ignored for lm fits.
 #' @param est_digits number of digits to round OR or HR to (default is 3)
 #' @param p_digits number of digits to round p values (default is 4)
@@ -595,12 +595,12 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' @export
 #' 
 
-run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, title_name = NULL, fail_if_warning = TRUE, conf.level = 0.95, overall_p_test_stat = c('Wald', 'LR'), est_digits = 3, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, title_name = NULL, fail_if_warning = TRUE, conf_level = 0.95, overall_p_test_stat = c('Wald', 'LR'), est_digits = 3, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
   overall_p_test_stat <- match.arg(overall_p_test_stat)
   .check_numeric_input(est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
-  .check_numeric_input(conf.level, lower_bound = 0, upper_bound = 1, scalar = TRUE)
+  .check_numeric_input(conf_level, lower_bound = 0, upper_bound = 1, scalar = TRUE)
   if (!all(x_in %in% colnames(model_data)))
     stop('All "x_in" (',paste0(x_in, collapse = ', '), ') must be in the "model_data" dataset')
   if (all(y_in != colnames(model_data)))
@@ -647,7 +647,7 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, tit
     n_info <- paste0('n=',tmp_fit$n,' (',tmp_fit$nevent,')')
   }
   
-  tmp_output <- pretty_model_output(fit = tmp_fit, model_data = model_data, title_name = title_name, conf.level = conf.level, overall_p_test_stat = overall_p_test_stat, est_digits = est_digits, p_digits = p_digits, latex_output = latex_output, sig_alpha = sig_alpha, background = background, ...)
+  tmp_output <- pretty_model_output(fit = tmp_fit, model_data = model_data, title_name = title_name, conf_level = conf_level, overall_p_test_stat = overall_p_test_stat, est_digits = est_digits, p_digits = p_digits, latex_output = latex_output, sig_alpha = sig_alpha, background = background, ...)
   tmp_output <- dplyr::bind_cols(tmp_output, n =  c(n_info, rep("", nrow(tmp_output) - 1)))
   
   if (!is.null(event_in)) names(tmp_output)[names(tmp_output) == 'n'] <- 'n (events)'

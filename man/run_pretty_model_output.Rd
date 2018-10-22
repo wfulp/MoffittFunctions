@@ -5,7 +5,7 @@
 \title{Wrapper for Pretty Model Output}
 \usage{
 run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
-  title_name = NULL, fail_if_warning = TRUE, conf.level = 0.95,
+  title_name = NULL, fail_if_warning = TRUE, conf_level = 0.95,
   overall_p_test_stat = c("Wald", "LR"), est_digits = 3,
   p_digits = 4, latex_output = FALSE, sig_alpha = 0.05,
   background = "yellow", ...)
@@ -23,7 +23,7 @@ run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
 
 \item{fail_if_warning}{Should program stop and give useful message if there is a warning message when running model (Default is TRUE)}
 
-\item{conf.level}{the confidence level required (default is 0.95).}
+\item{conf_level}{the confidence level required (default is 0.95).}
 
 \item{overall_p_test_stat}{"Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova. Ignored for lm fits.}
 

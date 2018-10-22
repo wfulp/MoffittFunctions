@@ -5,7 +5,7 @@
 \title{Fancy Table Output of Linear, Logistic, and Cox Models}
 \usage{
 pretty_model_output(fit, model_data, overall_p_test_stat = c("Wald",
-  "LR"), title_name = NULL, conf.level = 0.95, est_digits = 3,
+  "LR"), title_name = NULL, conf_level = 0.95, est_digits = 3,
   p_digits = 4, latex_output = FALSE, sig_alpha = 0.05,
   background = "yellow", ...)
 }
@@ -18,7 +18,7 @@ pretty_model_output(fit, model_data, overall_p_test_stat = c("Wald",
 
 \item{title_name}{title to use (will be repeated in first column)}
 
-\item{conf.level}{the confidence level required (default is 0.95).}
+\item{conf_level}{the confidence level required (default is 0.95).}
 
 \item{est_digits}{number of digits to round OR or HR to (default is 3)}
 
