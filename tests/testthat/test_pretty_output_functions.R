@@ -212,21 +212,22 @@ test_that("pretty_km_output and run_km_model testing", {
     Group = 'x2', 
     Level = levels(x2), 
     N = my_fit3$n, `N Events` = summary(my_fit3)$table[,'events'],
-    `Median Estimate` = gsub('NA','N.E.',paste0(round_away_0(summary(my_fit3)$table[,'median'], digits = 2, trailing_zeros = T), ' (',
-                               round_away_0(summary(my_fit3)$table[,'0.95LCL'], digits = 2, trailing_zeros = T), ', ',
-                               round_away_0(summary(my_fit3)$table[,'0.95UCL'], digits = 2, trailing_zeros = T), ')')),
-    `Time:5` = gsub('NA','N.E.',paste0(round_away_0(summary(my_fit3, time = 5)$surv, digits = 1, trailing_zeros = T), ' (',
-                                       round_away_0(summary(my_fit3, time = 5)$lower, digits = 1, trailing_zeros = T), ', ',
-                                       round_away_0(summary(my_fit3, time = 5)$upper, digits = 1, trailing_zeros = T), ')')),
-    `Time:10` = gsub('NA','N.E.',paste0(round_away_0(summary(my_fit3, time = 10)$surv, digits = 1, trailing_zeros = T), ' (',
-                                       round_away_0(summary(my_fit3, time = 10)$lower, digits = 1, trailing_zeros = T), ', ',
-                                       round_away_0(summary(my_fit3, time = 10)$upper, digits = 1, trailing_zeros = T), ')')),
+    `Median Estimate` = gsub('NA','N.E.',paste0(round_away_0(summary(my_fit3)$table[,'median'], digits = 1, trailing_zeros = T), ' (',
+                               round_away_0(summary(my_fit3)$table[,'0.95LCL'], digits = 1, trailing_zeros = T), ', ',
+                               round_away_0(summary(my_fit3)$table[,'0.95UCL'], digits = 1, trailing_zeros = T), ')')),
+    `Time:5` = gsub('NA','N.E.',paste0(round_away_0(summary(my_fit3, time = 5)$surv, digits = 2, trailing_zeros = T), ' (',
+                                       round_away_0(summary(my_fit3, time = 5)$lower, digits = 2, trailing_zeros = T), ', ',
+                                       round_away_0(summary(my_fit3, time = 5)$upper, digits = 2, trailing_zeros = T), ')')),
+    `Time:10` = gsub('NA','N.E.',paste0(round_away_0(summary(my_fit3, time = 10)$surv, digits = 2, trailing_zeros = T), ' (',
+                                       round_away_0(summary(my_fit3, time = 10)$lower, digits = 2, trailing_zeros = T), ', ',
+                                       round_away_0(summary(my_fit3, time = 10)$upper, digits = 2, trailing_zeros = T), ')')),
     `Log-Rank P` = c(round_away_0(pchisq(my_fit3_p$chi, length(my_fit3_p$n) - 1, lower.tail = FALSE), 4),rep('',nlevels(x2) - 1))
   )
   
   expect_equal(object = pretty_km_output(fit = my_fit3, time_est = c(5,10), title_name = 'Overall Fit'), 
                expected = expected_output %>% select(-`Log-Rank P`))
   
-  expect_equal(object = run_km_model(strata_in = 'x2', model_data = my_data, time_in = 'y', event_in = 'ybin', time_est = c(5,10), title_name = 'Overall Fit'), expected = expected_output)
+  expect_equal(object = run_km_model(strata_in = 'x2', model_data = my_data, time_in = 'y', event_in = 'ybin', time_est = c(5,10), title_name = 'Overall Fit'), 
+               expected = expected_output)
   
 })

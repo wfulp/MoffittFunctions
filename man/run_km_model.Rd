@@ -6,7 +6,7 @@
 \usage{
 run_km_model(strata_in = NA, model_data, time_in, event_in,
   time_est = NULL, group_name = NULL, title_name = NULL,
-  surv_est_prefix = "Time", surv_est_digits = 2,
+  conf_level = 0.95, surv_est_prefix = "Time", surv_est_digits = 2,
   median_est_digits = 1, p_digits = 4, latex_output = FALSE,
   sig_alpha = 0.05, background = "yellow", ...)
 }
@@ -24,6 +24,8 @@ run_km_model(strata_in = NA, model_data, time_in, event_in,
 \item{group_name}{strata variable name. If NULL and strata exists then using variable}
 
 \item{title_name}{title to use}
+
+\item{conf_level}{the confidence level required (default is 0.95).}
 
 \item{surv_est_prefix}{prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)}
 

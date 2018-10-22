@@ -440,12 +440,12 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
   if (!is.null(fit$strata)) {
     tmp_strata_levels <- substr(tmp_summary$strata, regexpr('=', tmp_summary$strata) + 1, nchar(as.vector(tmp_summary$strata)))
     tmp_all_levels <- tibble::tibble(Level = substr(names(fit$strata), regexpr('=',  names(fit$strata)) + 1, nchar( names(fit$strata))))
-    tmp_med_info <- stat_paste(tmp_summary$table[,'median'], tmp_summary$table[,'0.95LCL'], tmp_summary$table[,'0.95UCL'], 
+    tmp_med_info <- stat_paste(tmp_summary$table[,'median'], tmp_summary$table[,paste0(fit$conf.int,'LCL')], tmp_summary$table[,paste0(fit$conf.int,'UCL')], 
                                digits = median_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
     n_events <- tmp_summary$table[,'events']
   } else {
     tmp_strata_levels <- NULL
-    tmp_med_info <-  stat_paste(tmp_summary$table['median'], tmp_summary$table['0.95LCL'], tmp_summary$table['0.95UCL'], 
+    tmp_med_info <-  stat_paste(tmp_summary$table['median'], tmp_summary$table[paste0(fit$conf.int,'LCL')], tmp_summary$table[paste0(fit$conf.int,'UCL')], 
                                 digits = median_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
     n_events <- tmp_summary$table['events']
   }
@@ -497,6 +497,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' @param time_est numerical vector of time estimates. If NULL (default) no time estimates are calculated
 #' @param group_name strata variable name. If NULL and strata exists then using variable
 #' @param title_name title to use
+#' @param conf_level the confidence level required (default is 0.95).
 #' @param surv_est_prefix prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)
 #' @param surv_est_digits number of digits to round p values for survival estimates for specified times
 #' @param median_est_digits number of digits to round p values for Median Survival Estimates
@@ -566,7 +567,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' 
 #' @export
 #' 
-run_km_model <- function(strata_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+run_km_model <- function(strata_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, conf_level = .95, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
   if (length(strata_in) != 1) stop('"strata_in" must be length of 1')
   .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
@@ -598,7 +599,7 @@ run_km_model <- function(strata_in = NA, model_data, time_in, event_in, time_est
     }
   }
   
-  tmp_fit <- survival::survfit(tmp_formula, model_data)
+  tmp_fit <- survival::survfit(tmp_formula, model_data, conf.int = conf_level)
   tmp_km_output <- pretty_km_output(fit = tmp_fit, time_est = time_est, group_name = group_name, title_name = title_name, surv_est_prefix, surv_est_digits = surv_est_digits, median_est_digits = median_est_digits, latex_output = latex_output)
   
   if (is.na(strata_in)) 
