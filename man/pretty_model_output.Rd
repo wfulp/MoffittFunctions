@@ -5,17 +5,20 @@
 \title{Fancy Table Output of Linear, Logistic, and Cox Models}
 \usage{
 pretty_model_output(fit, model_data, overall_p_test_stat = c("Wald",
-  "LR"), title_name = NULL, est_digits = 3, p_digits = 4,
-  latex_output = FALSE, sig_alpha = 0.05, background = "yellow", ...)
+  "LR"), title_name = NULL, conf.level = 0.95, est_digits = 3,
+  p_digits = 4, latex_output = FALSE, sig_alpha = 0.05,
+  background = "yellow", ...)
 }
 \arguments{
 \item{fit}{lm, glm, or coxph fit (currently only tested on logistic glm fit)}
 
-\item{model_data}{dataset used to create model fits. Used for capturing variable labels, if they exist}
+\item{model_data}{data.frame or tibble  used to create model fits. Used for capturing variable labels, if they exist}
 
 \item{overall_p_test_stat}{"Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova. Ignored for lm fits.}
 
 \item{title_name}{title to use (will be repeated in first column)}
+
+\item{conf.level}{the confidence level required (default is 0.95).}
 
 \item{est_digits}{number of digits to round OR or HR to (default is 3)}
 
@@ -61,15 +64,14 @@ my_pretty_model_output <- pretty_model_output(fit = my_fit, model_data = my_mode
 # Printing of Fancy table in HTML
 library(magrittr)
 library(kableExtra)
-kable(my_pretty_model_output, 'html',escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Fig') \%>\% 
-  collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major') \%>\%
-  kable_styling(font_size = 9) \%>\% 
-  footnote(number = c('Model predicting y', paste0('Model sample size is n=',nrow(my_fit$model))))
+kable(my_pretty_model_output, 'html',escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Table') \%>\% 
+  collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major')
   
-  # Real World Examples
-  data(Bladder_Cancer)
-  surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')  
-  my_fit <- survival::coxph(surv_obj ~ Gender + Clinical_Stage_Grouped + PT0N0, data = Bladder_Cancer)
-  pretty_model_output(fit = my_fit, model_data = Bladder_Cancer)
+# Real World Examples
+data(Bladder_Cancer)
+surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')  
+my_fit <- survival::coxph(surv_obj ~ Gender + Clinical_Stage_Grouped + PT0N0, data = Bladder_Cancer)
+my_output <- pretty_model_output(fit = my_fit, model_data = Bladder_Cancer)
+kable(my_output, 'html') \%>\% collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
   
 }
