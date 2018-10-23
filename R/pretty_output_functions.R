@@ -508,7 +508,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
     neat_fit <- dplyr::full_join(neat_fit, type3_tests, by = c("name_sub" = "variable")) %>%
       dplyr::mutate(`Overall P Value` = ifelse(is.na(`Overall P Value`), '', `Overall P Value`))
   } else {
-    neat_fit <- neat_fit %>% mutate(`Overall P Value` = '')
+    neat_fit <- neat_fit %>% dplyr::mutate(`Overall P Value` = '')
   }
   
   neat_fit <- neat_fit %>% dplyr::select(Variable, Level, dplyr::contains('CI'), dplyr::contains('P Value'))
