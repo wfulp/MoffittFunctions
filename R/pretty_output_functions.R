@@ -347,7 +347,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 
 #' Fancy Table Output of Linear, Logistic, and Cox Models
 #' 
-#' pretty_model_output() takes a Linear, Logistic, and Cox model fit object and calculate estimates, odds ratios, or hazard ratios, respectively, with confidence intervals. P values are also produced. For categorical variables with 3+ levels overall Type 3 p values are calculated.
+#' pretty_model_output() takes a Linear, Logistic, and Cox model fit object and calculate estimates, odds ratios, or hazard ratios, respectively, with confidence intervals. P values are also produced. For categorical variables with 3+ levels overall Type 3 p values are calculated, in addition to p values comparing to the first level (reference).
 #'
 #' @param fit lm, glm, or coxph fit (currently only tested on logistic glm fit)
 #' @param model_data data.frame or tibble  used to create model fits. Used for capturing variable labels, if they exist
@@ -364,7 +364,11 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @details 
 #' 
 #' Model type is determined by \code{fit} class, and also family if glm class. If the class is glm and  binomial or quasibinomial family, then the output is designed for a Logistic model (i.e. Odd Ratios), if the class is coxph the output is designed for a Cox model (i.e. Harzard Ratios), otherwise the output is designed for a linear model or other model where normal coefficient estimates are displayed.
+#'
+#' @return
 #' 
+#' A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Est/OR/HR (95% CI)}, \code{P Value} (for categorical variables comparing to reference), \code{Overall P Value} (for categorical variables with 3+ levels). 
+#'   
 #' @examples
 #' 
 #' # Basic linear model example
@@ -547,7 +551,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' \code{fail_if_warning} variable default to TRUE because most warnings should be addressed, such as the "Loglik converged before variable XX; beta may be infinite" warning.
 #' 
 #' @return
-#' A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
+#' A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Est/OR/HR (95% CI)}, \code{P Value} (for categorical variables comparing to reference), \code{Overall P Value} (for categorical variables with 3+ levels), \code{n/n (event)}. 
 #' 
 #' @examples
 #' 

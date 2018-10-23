@@ -39,9 +39,6 @@ run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
 
 \item{...}{other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})}
 }
-\value{
-A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
-}
 \description{
 Wrapper for pretty_model_output(). This function takes a dataset, along with variables names for x (could be multiple), y, and possibly event status, for model fit.
 }
