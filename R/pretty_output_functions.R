@@ -524,24 +524,24 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' Hmisc::label(my_data$x1) <- "X1 Variable"
 #' 
 #'  # Single runs 
-#' run_km_model(strata_in = 'x1', model_data = my_data, 
+#' run_pretty_km_output(strata_in = 'x1', model_data = my_data, 
 #'      time_in = 'y', event_in = 'ybin == 1', time_est = NULL)
-#' run_km_model(strata_in = 'x1', model_data = my_data, 
+#' run_pretty_km_output(strata_in = 'x1', model_data = my_data, 
 #'      time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10))
 #' 
 #' # Multiple runs for different variables
 #' library(dplyr) 
 #' vars_to_run = c(NA, 'x1', 'x2')
-#' purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data,
+#' purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data,
 #'      time_in = 'y', event_in = 'ybin == 1', time_est = NULL) %>% 
 #'    select(Group, Level, everything())
 #'    
-#' km_info <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', 
+#' km_info <- purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data, time_in = 'y', 
 #'      event_in = 'ybin == 1', time_est = c(5,10), surv_est_prefix = 'Year', 
 #'      title_name = 'Overall Survival') %>% 
 #'    select(Group, Level, everything())
 #'    
-#' km_info2 <- purrr::map_dfr(vars_to_run, run_km_model, model_data = my_data, time_in = 'y', 
+#' km_info2 <- purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data, time_in = 'y', 
 #'      event_in = 'ybin2 == 1', time_est = c(5,10), surv_est_prefix = 'Year', 
 #'      title_name = 'Cancer Specific Survival') %>% 
 #'    select(Group, Level, everything())
@@ -558,7 +558,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #'   
 #'   vars_to_run = c(NA, 'Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
 #'   
-#'   purrr::map_dfr(vars_to_run, run_km_model, model_data = Bladder_Cancer, 
+#'   purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = Bladder_Cancer, 
 #'        time_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"', time_est = c(24,60), 
 #'        surv_est_prefix = 'Month', p_digits=5) %>% 
 #'    select(Group, Level, everything())
@@ -567,7 +567,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' 
 #' @export
 #' 
-run_km_model <- function(strata_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, conf_level = .95, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, conf_level = .95, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
   if (length(strata_in) != 1) stop('"strata_in" must be length of 1')
   .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)

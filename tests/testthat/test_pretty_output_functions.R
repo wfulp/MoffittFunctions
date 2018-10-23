@@ -192,7 +192,7 @@ test_that("pretty_pvalues testing various options (no errors)", {
 
 
 
-test_that("pretty_km_output and run_km_model testing", {
+test_that("pretty_km_output and run_pretty_km_output testing", {
   set.seed(542542522)
   ybin <- sample(0:1, 100, replace = TRUE)
   ybin2 <- sample(0:1, 100, replace = TRUE)
@@ -227,7 +227,7 @@ test_that("pretty_km_output and run_km_model testing", {
   expect_equal(object = pretty_km_output(fit = my_fit3, time_est = c(5,10), title_name = 'Overall Fit'), 
                expected = expected_output %>% select(-`Log-Rank P`))
   
-  expect_equal(object = run_km_model(strata_in = 'x2', model_data = my_data, time_in = 'y', event_in = 'ybin', time_est = c(5,10), title_name = 'Overall Fit'), 
+  expect_equal(object = run_pretty_km_output(strata_in = 'x2', model_data = my_data, time_in = 'y', event_in = 'ybin', time_est = c(5,10), title_name = 'Overall Fit'), 
                expected = expected_output)
   
 })
