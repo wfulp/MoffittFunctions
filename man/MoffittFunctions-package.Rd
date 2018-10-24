@@ -14,6 +14,7 @@ Statistical, data processing, and annotation functions for Moffitt Biostat.
 Authors:
 \itemize{
   \item Ram Thapa \email{Ram.Thapa@moffitt.org}
+  \item Zachary Thompson \email{Zachary.Thompson@moffitt.org}
 }
 
 }
