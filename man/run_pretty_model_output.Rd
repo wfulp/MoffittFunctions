@@ -39,6 +39,9 @@ run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
 
 \item{...}{other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})}
 }
+\value{
+A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Est/OR/HR (95\% CI)}, \code{P Value} (for categorical variables comparing to reference), \code{Overall P Value} (for categorical variables with 3+ levels), \code{n/n (event)}.
+}
 \description{
 Wrapper for pretty_model_output(). This function takes a dataset, along with variables names for x (could be multiple), y, and possibly event status, for model fit.
 }

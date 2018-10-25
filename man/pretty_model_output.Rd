@@ -32,6 +32,9 @@ pretty_model_output(fit, model_data, overall_p_test_stat = c("Wald",
 
 \item{...}{other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic}) (Only used if latex_output = TRUE)}
 }
+\value{
+A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Est/OR/HR (95\% CI)}, \code{P Value} (for categorical variables comparing to reference), \code{Overall P Value} (for categorical variables with 3+ levels).
+}
 \description{
 pretty_model_output() takes a Linear, Logistic, and Cox model fit object and calculate estimates, odds ratios, or hazard ratios, respectively, with confidence intervals. P values are also produced. For categorical variables with 3+ levels overall Type 3 p values are calculated, in addition to p values comparing to the first level (reference).
 }
@@ -47,19 +50,19 @@ y <- rexp(100,.1)
 x1 <- rnorm(100)
 x2 <- y + rnorm(100)
 x3 <- factor(sample(letters[1:4],100,replace = TRUE))
-my_model_data <- data.frame(y, ybin, x1, x2, x3)
+my_data <- data.frame(y, ybin, x1, x2, x3)
 
 # Linear Regression
-my_fit <- lm(y ~ x1 + x2 + x3, data = my_model_data)
-pretty_model_output(fit = my_fit, model_data = my_model_data)
+my_fit <- lm(y ~ x1 + x2 + x3, data = my_data)
+pretty_model_output(fit = my_fit, model_data = my_data)
 
 # Logistic Regression
-my_fit <- glm(ybin ~ x1 + x2 + x3, data = my_model_data, family = binomial(link = "logit"))
-pretty_model_output(fit = my_fit, model_data = my_model_data)
+my_fit <- glm(ybin ~ x1 + x2 + x3, data = my_data, family = binomial(link = "logit"))
+pretty_model_output(fit = my_fit, model_data = my_data)
 
 # Coxph Regression
-my_fit <- survival::coxph(survival::Surv(y, ybin) ~ x1 + x2 + x3, data = my_model_data)
-my_pretty_model_output <- pretty_model_output(fit = my_fit, model_data = my_model_data)
+my_fit <- survival::coxph(survival::Surv(y, ybin) ~ x1 + x2 + x3, data = my_data)
+my_pretty_model_output <- pretty_model_output(fit = my_fit, model_data = my_data)
 
 # Printing of Fancy table in HTML
 library(magrittr)

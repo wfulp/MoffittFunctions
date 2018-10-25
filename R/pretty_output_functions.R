@@ -367,7 +367,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #'
 #' @return
 #' 
-#' A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Est/OR/HR (95% CI)}, \code{P Value} (for categorical variables comparing to reference), \code{Overall P Value} (for categorical variables with 3+ levels). 
+#' A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Est/OR/HR (95\% CI)}, \code{P Value} (for categorical variables comparing to reference), \code{Overall P Value} (for categorical variables with 3+ levels). 
 #'   
 #' @examples
 #' 
@@ -378,19 +378,19 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' x1 <- rnorm(100)
 #' x2 <- y + rnorm(100)
 #' x3 <- factor(sample(letters[1:4],100,replace = TRUE))
-#' my_model_data <- data.frame(y, ybin, x1, x2, x3)
+#' my_data <- data.frame(y, ybin, x1, x2, x3)
 #' 
 #' # Linear Regression
-#' my_fit <- lm(y ~ x1 + x2 + x3, data = my_model_data)
-#' pretty_model_output(fit = my_fit, model_data = my_model_data)
+#' my_fit <- lm(y ~ x1 + x2 + x3, data = my_data)
+#' pretty_model_output(fit = my_fit, model_data = my_data)
 #' 
 #' # Logistic Regression
-#' my_fit <- glm(ybin ~ x1 + x2 + x3, data = my_model_data, family = binomial(link = "logit"))
-#' pretty_model_output(fit = my_fit, model_data = my_model_data)
+#' my_fit <- glm(ybin ~ x1 + x2 + x3, data = my_data, family = binomial(link = "logit"))
+#' pretty_model_output(fit = my_fit, model_data = my_data)
 #' 
 #' # Coxph Regression
-#' my_fit <- survival::coxph(survival::Surv(y, ybin) ~ x1 + x2 + x3, data = my_model_data)
-#' my_pretty_model_output <- pretty_model_output(fit = my_fit, model_data = my_model_data)
+#' my_fit <- survival::coxph(survival::Surv(y, ybin) ~ x1 + x2 + x3, data = my_data)
+#' my_pretty_model_output <- pretty_model_output(fit = my_fit, model_data = my_data)
 #' 
 #' # Printing of Fancy table in HTML
 #' library(magrittr)
@@ -551,7 +551,8 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' \code{fail_if_warning} variable default to TRUE because most warnings should be addressed, such as the "Loglik converged before variable XX; beta may be infinite" warning.
 #' 
 #' @return
-#' A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Est/OR/HR (95% CI)}, \code{P Value} (for categorical variables comparing to reference), \code{Overall P Value} (for categorical variables with 3+ levels), \code{n/n (event)}. 
+#' 
+#' A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Est/OR/HR (95\% CI)}, \code{P Value} (for categorical variables comparing to reference), \code{Overall P Value} (for categorical variables with 3+ levels), \code{n/n (event)}. 
 #' 
 #' @examples
 #' 
@@ -618,6 +619,10 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, tit
     tmp_formula <- as.formula(paste(y_in, " ~ ", x_in_paste))
     if (length(unique(model_data[,y_in, drop = TRUE])) == 2) {
       # Logistic Model
+      # making y_in a factor
+      model_data[, y_in] <- factor(model_data[, y_in, drop = TRUE])
+      if (nlevels(model_data[, y_in, drop = TRUE]) != 2) 
+        stop('"y_in" (',y_in, ') must have two levels for logistic model')
       tmp_fit <- tryCatch(expr =  glm(tmp_formula, data = model_data, family = binomial(link = "logit")), 
                           error = function(c) stop('Logistic model with ',paste0(x_in, collapse = ', '), ' covariates has error(s) running'))
       if (fail_if_warning) {
