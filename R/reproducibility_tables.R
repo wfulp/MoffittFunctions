@@ -13,11 +13,11 @@
 #'
 #' @examples
 #'
-#' getUsername()
+#' get_full_name()
 #'
 #' @export
 
-getUsername <- function(id=NULL){
+get_full_name <- function(id=NULL){
   switch(Sys.info()[['sysname']],
          Windows = {
            if (is.null(id)) {id <- Sys.getenv("USERNAME")}
@@ -35,7 +35,7 @@ getUsername <- function(id=NULL){
          Linux   = {
            if (is.null(id)) {id <- Sys.getenv("USER")}
            myargs <- paste0("-h mcc_ldap.hlm.ad.moffitt.usf.edu -b dc=hlm,dc=ad,dc=moffitt,dc=usf,dc=edu uid=", id)
-           user <- system2("ldapsearch", args = myargs, stdout = TRUE)
+           user <- suppressMessages(system2("ldapsearch", args = myargs, stdout = TRUE))
            user <- user[grep("cn:", user)]
            if (length(user) > 0) {
              user <-  paste(strsplit(gsub(",", "", gsub("[a-z]+: ", "", user)), " ")[[1]][c(2, 1)], collapse = " ")
@@ -46,7 +46,7 @@ getUsername <- function(id=NULL){
          Darwin  = {
            if (is.null(id)) {id <- Sys.getenv("USER")}
            myargs <- paste0("-h mcc_ldap.hlm.ad.moffitt.usf.edu -b dc=hlm,dc=ad,dc=moffitt,dc=usf,dc=edu uid=", id)
-           user <- system2("ldapsearch", args = myargs, stdout = TRUE)
+           user <- suppressMessages(system2("ldapsearch", args = myargs, stdout = TRUE))
            user <- user[grep("cn:", user)]
            if (length(user) > 0) {
              user <-  paste(strsplit(gsub(",", "", gsub("[a-z]+: ", "", user)), " ")[[1]][c(2, 1)], collapse = " ")
@@ -82,7 +82,7 @@ getUsername <- function(id=NULL){
 
 get_session_info <- function(){
 
-  username <- tryCatch(getUsername(),
+  username <- tryCatch(get_full_name(),
                        error = function(c) 
                          ifelse(Sys.info()[['sysname']] == 'Windows', 
                                 Sys.getenv("USERNAME"), 
