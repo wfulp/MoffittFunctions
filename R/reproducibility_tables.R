@@ -29,7 +29,7 @@ get_full_name <- function(id=NULL){
            if (length(user) > 0) {
              user <- paste(strsplit(gsub(",", "", user), " ")[[1]][c(2, 1)], collapse = " ")
            } else {
-             stop("No userid ", id, " was found.")
+             user <- id
            }
          },
          Linux   = {
@@ -40,7 +40,7 @@ get_full_name <- function(id=NULL){
            if (length(user) > 0) {
              user <-  paste(strsplit(gsub(",", "", gsub("[a-z]+: ", "", user)), " ")[[1]][c(2, 1)], collapse = " ")
            } else {
-             stop("No userid ", id, " was found.")
+             user <- id
            }
          },
          Darwin  = {
@@ -51,11 +51,10 @@ get_full_name <- function(id=NULL){
            if (length(user) > 0) {
              user <-  paste(strsplit(gsub(",", "", gsub("[a-z]+: ", "", user)), " ")[[1]][c(2, 1)], collapse = " ")
            } else {
-             stop("No userid ", id, " was found.")
+             user <- id
            }
          }
   )
-  
   return(user)
 }
 
