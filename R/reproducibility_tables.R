@@ -17,7 +17,7 @@
 #'
 #' @export
 
-get_full_name <- function(id=NULL){
+get_full_name <- function(id = NULL){
   switch(Sys.info()[['sysname']],
          Windows = {
            if (is.null(id)) {id <- Sys.getenv("USERNAME")}
@@ -65,7 +65,7 @@ get_full_name <- function(id=NULL){
 #' Creating tables used at the end of reports, for reproducibility. Most of the information is based off of sessioninfo::session_info()
 #'
 #'
-#' @return dataframe of Software Session Information and dataframe of Software Package Version Information
+#' @return list of length two, containing dataframe of Software Session Information and dataframe of Software Package Version Information
 #'
 #' @details
 #'
@@ -130,7 +130,7 @@ get_session_info <- function(){
       folder_info_in <- dirname(all_git_files[unlist(lapply(all_git_files, function(xx) grepl(xx, my_current_input_w_dir)))])
       
     } else {
-      folder_info_in <- 'No Location Detected'
+      folder_info_in <- 'No Input File Location Detected'
     }
     
     
@@ -145,7 +145,7 @@ get_session_info <- function(){
       value = gitremote,
       stringsAsFactors = FALSE)
     
-    my_session_info1 <- rbind(my_session_info1, url_info, folder_info, file_name, user_info)
+    my_session_info1 <- rbind(my_session_info1, url_info, file_name, folder_info, user_info)
   }
   
   

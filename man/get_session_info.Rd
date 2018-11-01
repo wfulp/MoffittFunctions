@@ -7,7 +7,7 @@
 get_session_info()
 }
 \value{
-dataframe of Software Session Information and dataframe of Software Package Version Information
+list of length two, containing dataframe of Software Session Information and dataframe of Software Package Version Information
 }
 \description{
 Creating tables used at the end of reports, for reproducibility. Most of the information is based off of sessioninfo::session_info()
