@@ -13,16 +13,18 @@ Imports:
     broom (>= 0.5.0),
     coin,
     data.table,
+    devtools (>= 2.0.0),
     dplyr,
     Exact,
     Hmisc,
     kableExtra,
+    knitr,
     purrr,
+    sessioninfo,
     survival,
     tibble,
     tidyr
 Suggests: 
-    knitr,
     testthat
 RoxygenNote: 6.1.0
 Encoding: UTF-8
