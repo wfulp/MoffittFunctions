@@ -432,7 +432,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
     group_name <- gsub('_', ' ', substr(names(fit$strata)[1], 1, regexpr('=', names(fit$strata)[1]) - 1))
   
   # Getting specific time_est estimates
-  tmp_summary <- summary(fit, time = time_est)
+  tmp_summary <- summary(fit, time = time_est, extend = TRUE)
   tmp_surv_est <-  stat_paste(tmp_summary$surv, tmp_summary$lower, tmp_summary$upper, 
                               digits = surv_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
   if (latex_output) tmp_surv_est <- gsub('\\%','\\\\%', tmp_surv_est)
@@ -601,7 +601,7 @@ run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, 
   }
   
   tmp_fit <- survival::survfit(tmp_formula, model_data, conf.int = conf_level)
-  tmp_km_output <- pretty_km_output(fit = tmp_fit, time_est = time_est, group_name = group_name, title_name = title_name, surv_est_prefix, surv_est_digits = surv_est_digits, median_est_digits = median_est_digits, latex_output = latex_output)
+  tmp_km_output <- pretty_km_output(fit = tmp_fit, time_est = time_est, group_name = group_name, title_name = title_name, surv_est_prefix = surv_est_prefix, surv_est_digits = surv_est_digits, median_est_digits = median_est_digits, latex_output = latex_output)
   
   if (is.na(strata_in)) 
     tmp_km_output else 
