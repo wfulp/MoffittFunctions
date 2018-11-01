@@ -418,9 +418,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
   if (!is.null(time_est)) {
     # Want to make sure time_est > 0
     .check_numeric_input(time_est, lower_bound = 1e-50)
-    if (any(time_est > max(fit$time, na.rm = TRUE))) 
-      stop("At least one value of 'time_est' estimate is higher than the largest time_est value in 'fit' object.")
-  } else {
+ } else {
     # if no time_est requested, setting time_est to 0 and then removing later, to make coding much easier.
     time_est = 0
   }
@@ -443,15 +441,29 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
     tmp_med_info <- stat_paste(tmp_summary$table[,'median'], tmp_summary$table[,paste0(fit$conf.int,'LCL')], tmp_summary$table[,paste0(fit$conf.int,'UCL')], 
                                digits = median_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
     n_events <- tmp_summary$table[,'events']
+    # Getting max times for each level
+    fit_for_max <- summary(fit, censored = TRUE)
+    last_index <- length(fit_for_max$strata) - match(unique(fit_for_max$strata), rev(fit_for_max$strata)) + 1
+    max_times <- dplyr::bind_cols(tmp_all_levels, max_times = fit_for_max$time[last_index])
   } else {
     tmp_strata_levels <- NULL
     tmp_med_info <-  stat_paste(tmp_summary$table['median'], tmp_summary$table[paste0(fit$conf.int,'LCL')], tmp_summary$table[paste0(fit$conf.int,'UCL')], 
                                 digits = median_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
     n_events <- tmp_summary$table['events']
+    max_times <- max(summary(fit, censored = TRUE)$time)
   }
   tmp_surv_est_info_long <- dplyr::bind_cols(Level = tmp_strata_levels, 
                                      Time = tmp_summary$time, Est = tmp_surv_est)
   names(tmp_surv_est_info_long)[ names(tmp_surv_est_info_long) == 'Time'] = surv_est_prefix
+  
+  # Need to Replace times after last value
+  if (!is.null(fit$strata)) {
+    tmp_surv_est_info_long <- dplyr::full_join(tmp_surv_est_info_long, max_times, by = 'Level') %>% 
+      mutate(Est = ifelse(Time > max_times, 'N.E.', Est)) %>% select(-max_times)
+  } else {
+    tmp_surv_est_info_long <- bind_cols(tmp_surv_est_info_long, max_times = rep(max_times, nrow(tmp_surv_est_info_long))) %>% 
+      mutate(Est = ifelse(Time > max_times, 'N.E.', Est)) %>% select(-max_times)
+  }
 
   tmp_surv_est_info <- tmp_surv_est_info_long %>% tidyr::spread_(surv_est_prefix, 'Est', sep = ':') 
   
