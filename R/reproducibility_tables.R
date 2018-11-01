@@ -77,8 +77,25 @@ get_full_name <- function(id = NULL){
 #' my_session_info <- get_session_info()
 #' 
 #' library(dplyr)
-#' kableExtra::kable(my_session_info$platform_table, 'latex', booktabs = TRUE, linesep = '', caption = "Supplemental Table: Reproducibility Software Session Information") %>% kableExtra::kable_styling(font_size = 7)
-#' kableExtra::kable(my_session_info$packages_table, 'latex', booktabs = TRUE, linesep = '', caption = "Supplemental Table: Reproducibility Software Package Version Information") %>% kableExtra::kable_styling(font_size = 7)
+#' 
+#' # Simple HTML Display
+#' kableExtra::kable(my_session_info$platform_table, 'html', 
+#'       caption = "Reproducibility Software Session Information") %>% 
+#'       kableExtra::kable_styling()
+#'       
+#' kableExtra::kable(my_session_info$packages_table, 'html', 
+#'       caption = "Reproducibility Software Package Version Information") %>% 
+#'       kableExtra::kable_styling()
+#' 
+#' 
+#' # Latex Display
+#' kableExtra::kable(my_session_info$platform_table, 'latex', booktabs = TRUE, 
+#'       linesep = '', caption = "Reproducibility Software Session Information") %>% 
+#'       kableExtra::kable_styling(font_size = 7)
+#' 
+#' kableExtra::kable(my_session_info$packages_table, 'latex', booktabs = TRUE, 
+#'       linesep = '', caption = "Reproducibility Software Package Version Information") %>% 
+#'       kableExtra::kable_styling(font_size = 7)
 #'
 #' @export
 
