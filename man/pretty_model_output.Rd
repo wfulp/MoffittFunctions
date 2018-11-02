@@ -65,16 +65,16 @@ my_fit <- survival::coxph(survival::Surv(y, ybin) ~ x1 + x2 + x3, data = my_data
 my_pretty_model_output <- pretty_model_output(fit = my_fit, model_data = my_data)
 
 # Printing of Fancy table in HTML
-library(magrittr)
-library(kableExtra)
-kable(my_pretty_model_output, 'html',escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Table') \%>\% 
-  collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major')
+library(dplyr)
+kableExtra::kable(my_pretty_model_output, 'html', caption = 'My Table') \%>\% 
+   kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack')
   
 # Real World Examples
 data(Bladder_Cancer)
 surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')  
 my_fit <- survival::coxph(surv_obj ~ Gender + Clinical_Stage_Grouped + PT0N0, data = Bladder_Cancer)
 my_output <- pretty_model_output(fit = my_fit, model_data = Bladder_Cancer)
-kable(my_output, 'html') \%>\% collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
+kableExtra::kable(my_output, 'html') \%>\% 
+    kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack')
   
 }

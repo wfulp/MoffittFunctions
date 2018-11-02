@@ -5,19 +5,22 @@
 \title{Wrapper for Pretty Model Output}
 \usage{
 run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
-  title_name = NULL, fail_if_warning = TRUE, conf_level = 0.95,
+  ref_or_censor_level = NULL, title_name = NULL,
+  fail_if_warning = TRUE, conf_level = 0.95,
   overall_p_test_stat = c("Wald", "LR"), est_digits = 3,
   p_digits = 4, latex_output = FALSE, sig_alpha = 0.05,
-  background = "yellow", ...)
+  background = "yellow", verbose = FALSE, ...)
 }
 \arguments{
 \item{x_in}{name of x variables in model (can be vector of x names)}
 
 \item{model_data}{data.frame or tibble that contains \code{x_in}, \code{time_in}, and \code{event_in} variables}
 
-\item{y_in}{name of time variable component of outcome measure}
+\item{y_in}{name of outcome measure for logistic and linear model, or name of time component in cox model}
 
-\item{event_in}{name of T/F event stauts or expression resulting in T/F scalor (i.e. "Vital_Status == 'Dead'") for the name of event variable component of outcome measure. TRUE represents event (i.e. Death)}
+\item{event_in}{name of event stauts. If \code{ref_or_censor_level} = NULL then this must be the name of a T/F or 0/1 variable}
+
+\item{ref_or_censor_level}{outcome variable reference level for logistic model, and censor level for cox model.}
 
 \item{title_name}{title to use (will be repeated in first column)}
 
@@ -37,6 +40,8 @@ run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
 
 \item{background}{background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if latex_output = TRUE)}
 
+\item{verbose}{a logical variable indicating if warnings and messages should be displayed. Default FALSE.}
+
 \item{...}{other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})}
 }
 \value{
@@ -55,40 +60,44 @@ Wrapper for pretty_model_output(). This function takes a dataset, along with var
 # Basic linear model example
 set.seed(542542522)
 ybin <- sample(0:1, 100, replace = TRUE)
-ybin2 <- sample(0:1, 100, replace = TRUE)
+ybin2 <- sample(c('Male','Female'), 100, replace = TRUE)
+ybin3 <- sample(c('Dead','Alive'), 100, replace = TRUE)
 y <- rexp(100,.1)
 x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
 x2 <- factor(sample(letters[1:4],100,replace = TRUE))
-my_data <- data.frame(y, ybin,ybin2, x1, x2)
+my_data <- data.frame(y, ybin, ybin2, ybin3, x1, x2)
 Hmisc::label(my_data$x1) <- "X1 Variable"
 
  # Single runs 
-run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', event_in = 'ybin == 1')
-run_pretty_model_output(x_in = c('x1','x2'), model_data = my_data, y_in = 'y', event_in = 'ybin == 1')
-run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'ybin', event_in = NULL)
+run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', event_in = 'ybin')
+run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', 
+     event_in = 'ybin3', ref_or_censor_level = 'Alive')
+run_pretty_model_output(x_in = c('x1','x2'), model_data = my_data, y_in = 'y', event_in = 'ybin')
+run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'ybin', event_in = NULL, verbose = T)
 run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'y', event_in = NULL)
 
 # Multiple runs for different variables
 library(dplyr) 
 vars_to_run = c('x1', 'x2')
 cox_models <- purrr::map_dfr(vars_to_run, run_pretty_model_output, model_data = my_data, 
-     y_in = 'y', event_in = 'ybin == 1')
+     y_in = 'y', event_in = 'ybin')
 
-library(kableExtra)
-kable(cox_models, 'html',escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Table') \%>\% 
-  collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major')
+kableExtra::kable(cox_models, 'html', caption = 'My Table') \%>\% 
+  kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 
 # Real World Example
 data(Bladder_Cancer)
 vars_to_run = c('Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
 
 univariate_output <- purrr::map_dfr(vars_to_run, run_pretty_model_output, model_data = Bladder_Cancer, 
-      y_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"')
-kable(univariate_output, 'html') \%>\% collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
+      y_in = 'Survival_Months', event_in = 'Vital_Status', ref_or_censor_level = 'Alive')
+kableExtra::kable(univariate_output, 'html') \%>\% 
+      kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 
 multivariable_output <- run_pretty_model_output(vars_to_run, model_data = Bladder_Cancer, 
-      y_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"')
-kable(multivariable_output, 'html') \%>\% collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
+      y_in = 'Survival_Months', event_in = 'Vital_Status', ref_or_censor_level = 'Alive')
+kableExtra::kable(multivariable_output, 'html') \%>\% 
+      kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 
 
 }

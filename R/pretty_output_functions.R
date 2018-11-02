@@ -303,7 +303,8 @@ stat_paste = function(stat1, stat2 = NULL, stat3 = NULL, digits = 0, trailing_ze
 #'
 #' # How to use pretty_pvalues in reports
 #' raw_pvals <- c(0.00000007, .05000001, NaN, NA, 0.783)
-#' pretty_pvals <- pretty_pvalues(raw_pvals , digits = 3, background = "green", italic = TRUE, bold = TRUE)
+#' pretty_pvals <- pretty_pvalues(raw_pvals , digits = 3, 
+#'    background = "green", italic = TRUE, bold = TRUE)
 #' kableExtra::kable(pretty_pvals , format = "latex", escape = FALSE, col.names = c("P-values"))
 #'
 #' @export
@@ -393,21 +394,20 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' my_pretty_model_output <- pretty_model_output(fit = my_fit, model_data = my_data)
 #' 
 #' # Printing of Fancy table in HTML
-#' library(magrittr)
-#' library(kableExtra)
-#' kable(my_pretty_model_output, 'html',escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Table') %>% 
-#'   collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major')
+#' library(dplyr)
+#' kableExtra::kable(my_pretty_model_output, 'html', caption = 'My Table') %>% 
+#'    kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack')
 #'   
 #' # Real World Examples
 #' data(Bladder_Cancer)
 #' surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')  
 #' my_fit <- survival::coxph(surv_obj ~ Gender + Clinical_Stage_Grouped + PT0N0, data = Bladder_Cancer)
 #' my_output <- pretty_model_output(fit = my_fit, model_data = Bladder_Cancer)
-#' kable(my_output, 'html') %>% collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
+#' kableExtra::kable(my_output, 'html') %>% 
+#'     kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack')
 #'   
 #' @import car
 #' @importFrom Hmisc label label<-
-#' @importFrom magrittr %>%
 #' 
 #' @export
 
@@ -531,8 +531,9 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #'
 #' @param x_in name of x variables in model (can be vector of x names)
 #' @param model_data data.frame or tibble that contains \code{x_in}, \code{time_in}, and \code{event_in} variables
-#' @param y_in name of time variable component of outcome measure
-#' @param event_in name of T/F event stauts or expression resulting in T/F scalor (i.e. "Vital_Status == 'Dead'") for the name of event variable component of outcome measure. TRUE represents event (i.e. Death)
+#' @param y_in name of outcome measure for logistic and linear model, or name of time component in cox model
+#' @param event_in name of event stauts. If \code{ref_or_censor_level} = NULL then this must be the name of a T/F or 0/1 variable
+#' @param ref_or_censor_level outcome variable reference level for logistic model, and censor level for cox model.
 #' @param title_name title to use (will be repeated in first column)
 #' @param fail_if_warning Should program stop and give useful message if there is a warning message when running model (Default is TRUE)
 #' @param conf_level the confidence level required (default is 0.95).
@@ -542,6 +543,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' @param latex_output will this table go into a latex output (making special charaters latex friendly)
 #' @param sig_alpha the defined significance level for highlighting. Default = 0.05 (Only used if latex_output = TRUE)
 #' @param background background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if latex_output = TRUE)
+#' @param verbose a logical variable indicating if warnings and messages should be displayed. Default FALSE.
 #' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})
 #
 #' 
@@ -559,40 +561,44 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' # Basic linear model example
 #' set.seed(542542522)
 #' ybin <- sample(0:1, 100, replace = TRUE)
-#' ybin2 <- sample(0:1, 100, replace = TRUE)
+#' ybin2 <- sample(c('Male','Female'), 100, replace = TRUE)
+#' ybin3 <- sample(c('Dead','Alive'), 100, replace = TRUE)
 #' y <- rexp(100,.1)
 #' x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
 #' x2 <- factor(sample(letters[1:4],100,replace = TRUE))
-#' my_data <- data.frame(y, ybin,ybin2, x1, x2)
+#' my_data <- data.frame(y, ybin, ybin2, ybin3, x1, x2)
 #' Hmisc::label(my_data$x1) <- "X1 Variable"
 #' 
 #'  # Single runs 
-#' run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', event_in = 'ybin == 1')
-#' run_pretty_model_output(x_in = c('x1','x2'), model_data = my_data, y_in = 'y', event_in = 'ybin == 1')
-#' run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'ybin', event_in = NULL)
+#' run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', event_in = 'ybin')
+#' run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', 
+#'      event_in = 'ybin3', ref_or_censor_level = 'Alive')
+#' run_pretty_model_output(x_in = c('x1','x2'), model_data = my_data, y_in = 'y', event_in = 'ybin')
+#' run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'ybin', event_in = NULL, verbose = T)
 #' run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'y', event_in = NULL)
 #' 
 #' # Multiple runs for different variables
 #' library(dplyr) 
 #' vars_to_run = c('x1', 'x2')
 #' cox_models <- purrr::map_dfr(vars_to_run, run_pretty_model_output, model_data = my_data, 
-#'      y_in = 'y', event_in = 'ybin == 1')
+#'      y_in = 'y', event_in = 'ybin')
 #' 
-#' library(kableExtra)
-#' kable(cox_models, 'html',escape = F, longtable = F, booktabs = TRUE, linesep = '', caption = 'My Table') %>% 
-#'   collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2, latex_hline = 'major')
+#' kableExtra::kable(cox_models, 'html', caption = 'My Table') %>% 
+#'   kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 #' 
 #' # Real World Example
 #' data(Bladder_Cancer)
 #' vars_to_run = c('Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
 #' 
 #' univariate_output <- purrr::map_dfr(vars_to_run, run_pretty_model_output, model_data = Bladder_Cancer, 
-#'       y_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"')
-#' kable(univariate_output, 'html') %>% collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
+#'       y_in = 'Survival_Months', event_in = 'Vital_Status', ref_or_censor_level = 'Alive')
+#' kableExtra::kable(univariate_output, 'html') %>% 
+#'       kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 #' 
 #' multivariable_output <- run_pretty_model_output(vars_to_run, model_data = Bladder_Cancer, 
-#'       y_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"')
-#' kable(multivariable_output, 'html') %>% collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
+#'       y_in = 'Survival_Months', event_in = 'Vital_Status', ref_or_censor_level = 'Alive')
+#' kableExtra::kable(multivariable_output, 'html') %>% 
+#'       kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 #' 
 #' 
 #' @importFrom  Hmisc label
@@ -600,7 +606,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' @export
 #' 
 
-run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, title_name = NULL, fail_if_warning = TRUE, conf_level = 0.95, overall_p_test_stat = c('Wald', 'LR'), est_digits = 3, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, ref_or_censor_level = NULL, title_name = NULL, fail_if_warning = TRUE, conf_level = 0.95, overall_p_test_stat = c('Wald', 'LR'), est_digits = 3, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', verbose = FALSE, ...) {
   overall_p_test_stat <- match.arg(overall_p_test_stat)
   .check_numeric_input(est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
@@ -608,8 +614,9 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, tit
   .check_numeric_input(conf_level, lower_bound = 0, upper_bound = 1, scalar = TRUE)
   if (!all(x_in %in% colnames(model_data)))
     stop('All "x_in" (',paste0(x_in, collapse = ', '), ') must be in the "model_data" dataset')
-  if (all(y_in != colnames(model_data)))
-    stop('"y_in" (',y_in, ') must be in the "model_data" dataset')
+  if (length(y_in) != 1) stop('"y_in" must be length of 1')
+  if (all(y_in != colnames(model_data))) 
+    stop('"y_in" (',y_in, ') not in the "model_data" dataset')
   if (length(unique(model_data[,y_in, drop = TRUE])) <= 1)
     stop('"y_in" (',y_in, ') must have more than one unique value')
   
@@ -620,37 +627,60 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, tit
     if (length(unique(model_data[,y_in, drop = TRUE])) == 2) {
       # Logistic Model
       # making y_in a factor
-      model_data[, y_in] <- factor(model_data[, y_in, drop = TRUE])
-      if (nlevels(model_data[, y_in, drop = TRUE]) != 2) 
-        stop('"y_in" (',y_in, ') must have two levels for logistic model')
+      if (!is.null(ref_or_censor_level)) {
+        if (all(unique(model_data[, y_in, drop = TRUE]) != ref_or_censor_level))
+          stop('"ref_or_censor_level" (',ref_or_censor_level, ') not present in "y_in" (',y_in, ')')
+        model_data[, y_in] <- factor(model_data[, y_in, drop = TRUE] != ref_or_censor_level)
+      } else {
+        model_data[, y_in] <- factor(model_data[, y_in, drop = TRUE])
+        if (verbose) 
+          message('Since no "ref_or_censor_level" specified setting "',levels(model_data[, y_in, drop = TRUE])[1], '" as outcome reference in logistic model')
+      }
+        if (nlevels(model_data[, y_in, drop = TRUE]) != 2) 
+          stop('"y_in" (',y_in, ') must have two levels for logistic model')
       tmp_fit <- tryCatch(expr =  glm(tmp_formula, data = model_data, family = binomial(link = "logit")), 
-                          error = function(c) stop('Logistic model with ',paste0(x_in, collapse = ', '), ' covariates has error(s) running'))
+                          error = function(c) stop('Logistic model with "',deparse(tmp_formula), '" formula has error(s) running'))
       if (fail_if_warning) {
         tmp_confint <- tryCatch(expr = suppressMessages(confint(tmp_fit)), 
-                            error = function(c) stop('Logistic model with ',paste0(x_in, collapse = ', '), ' CI(s) has error(s) running'), 
-                            warning = function(c) stop('Logistic model with ',paste0(x_in, collapse = ', '), ' has Inf CI(s); most likely a model error'))
+                            error = function(c) stop('Logistic model with "',deparse(tmp_formula), '" formula has error(s) calculating CI(s)'), 
+                            warning = function(c) stop('Logistic model with "',deparse(tmp_formula), '" formula has Inf CI(s); most likely a model error'))
       }
     } else {
       # Linear Model
       tmp_fit <- tryCatch(expr =  lm(tmp_formula, data = model_data), 
-                          error = function(c) stop('Linear model with ',paste0(x_in, collapse = ', '), ' covariates has error(s) running'))
+                          error = function(c) stop('Linear model with "',deparse(tmp_formula), '" formula has error(s) calculating CI(s)'))
       if (fail_if_warning) {
         tmp_confint <- tryCatch(expr = suppressMessages(confint(tmp_fit)), 
-                                error = function(c) stop('Linear model with ',paste0(x_in, collapse = ', '), ' CI(s) has error(s) running'), 
-                                warning = function(c) stop('Linear model with ',paste0(x_in, collapse = ', '), ' has Inf CI(s); most likely a model error'))
+                                error = function(c) stop('Linear model with "',deparse(tmp_formula), '" formula has error(s) calculating CI(s)'), 
+                                warning = function(c) stop('Linear model with "',deparse(tmp_formula), '" formula has Inf CI(s); most likely a model error'))
       }
     }
     n_info <- paste0('n=',nrow(tmp_fit$model))
   } else {
-    # Coxph Model
+    # Cox Model
+    if (all(event_in != colnames(model_data))) 
+      stop('"event_in" (',event_in, ') not in the "model_data" dataset')
+    if (length(unique(model_data[,event_in, drop = T])) > 2)
+      stop('"event_in" (',event_in, ') must have only two levels')
+    
+    if (!is.null(ref_or_censor_level)) {
+      if (all(unique(model_data[, event_in, drop = TRUE]) != ref_or_censor_level))
+        stop('"ref_or_censor_level" (',ref_or_censor_level, ') not present in "event_in" (',event_in, ')')
+      model_data[,event_in] <- model_data[,event_in, drop = T] != ref_or_censor_level
+    } 
+    event_levels <- unique(model_data[,event_in, drop = T])
+    if (all(event_levels != TRUE))
+      stop('"event_in" (',event_in, ') must have at least one event')
+    
+
     tmp_formula <- as.formula(paste("survival::Surv(",y_in,",",event_in,") ~ ", x_in_paste))
     if (fail_if_warning) {
       tmp_fit <- tryCatch(expr = survival::coxph(tmp_formula, data = model_data), 
-                          error = function(c) stop('Cox model with ',paste0(x_in, collapse = ', '), ' covariates has error(s) running'), 
-                          warning = function(c) stop('Cox model with ',paste0(x_in, collapse = ', '), ' covariates has warnings(s) running'))
+                          error = function(c) stop('Cox model with "',deparse(tmp_formula), '" formula has error(s) running'), 
+                          warning = function(c) stop('Cox model with "',deparse(tmp_formula), '" formula has warnings(s) running'))
     } else {
       tmp_fit <- tryCatch(expr = survival::coxph(tmp_formula, data = model_data), 
-                          error = function(c) stop('Cox model with ',paste0(x_in, collapse = ', '), ' covariates has error(s) running'))
+                          error = function(c) stop('Cox model with "',deparse(tmp_formula), '" formula has error(s) running'))
       
     }
     n_info <- paste0('n=',tmp_fit$n,' (',tmp_fit$nevent,')')
