@@ -532,7 +532,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' @param x_in name of x variables in model (can be vector of x names)
 #' @param model_data data.frame or tibble that contains \code{x_in}, \code{time_in}, and \code{event_in} variables
 #' @param y_in name of outcome measure for logistic and linear model, or name of time component in cox model
-#' @param event_in name of event stauts. If \code{ref_or_censor_level} = NULL then this must be the name of a T/F or 0/1 variable
+#' @param event_in name of event status variable. Shouled be left NULL for logistic and linear models. If \code{ref_or_censor_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively.
 #' @param ref_or_censor_level outcome variable reference level for logistic model, and censor level for cox model.
 #' @param title_name title to use (will be repeated in first column)
 #' @param fail_if_warning Should program stop and give useful message if there is a warning message when running model (Default is TRUE)

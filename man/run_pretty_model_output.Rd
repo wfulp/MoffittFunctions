@@ -18,7 +18,7 @@ run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
 
 \item{y_in}{name of outcome measure for logistic and linear model, or name of time component in cox model}
 
-\item{event_in}{name of event stauts. If \code{ref_or_censor_level} = NULL then this must be the name of a T/F or 0/1 variable}
+\item{event_in}{name of event status variable. Shouled be left NULL for logistic and linear models. If \code{ref_or_censor_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively.}
 
 \item{ref_or_censor_level}{outcome variable reference level for logistic model, and censor level for cox model.}
 
