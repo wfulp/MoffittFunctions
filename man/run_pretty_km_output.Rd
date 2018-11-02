@@ -5,10 +5,10 @@
 \title{Wrapper for KM Model Output, with Log-Rank p value}
 \usage{
 run_pretty_km_output(strata_in = NA, model_data, time_in, event_in,
-  time_est = NULL, group_name = NULL, title_name = NULL,
-  conf_level = 0.95, surv_est_prefix = "Time", surv_est_digits = 2,
-  median_est_digits = 1, p_digits = 4, latex_output = FALSE,
-  sig_alpha = 0.05, background = "yellow", ...)
+  ref_or_censor_level = NULL, time_est = NULL, group_name = NULL,
+  title_name = NULL, conf_level = 0.95, surv_est_prefix = "Time",
+  surv_est_digits = 2, median_est_digits = 1, p_digits = 4,
+  latex_output = FALSE, sig_alpha = 0.05, background = "yellow", ...)
 }
 \arguments{
 \item{strata_in}{name of strata variable, or NA (default) if no strata desired}
@@ -17,7 +17,9 @@ run_pretty_km_output(strata_in = NA, model_data, time_in, event_in,
 
 \item{time_in}{name of time variable component of outcome measure}
 
-\item{event_in}{name of T/F event stauts or expression resulting in T/F scalor (i.e. "Vital_Status == 'Dead'") for the name of event variable component of outcome measure. TRUE represents event (i.e. Death)}
+\item{event_in}{name of event status variable. If \code{ref_or_censor_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively}
+
+\item{ref_or_censor_level}{outcome variable reference level for logistic model, and censor level for cox model.}
 
 \item{time_est}{numerical vector of time estimates. If NULL (default) no time estimates are calculated}
 
@@ -51,44 +53,46 @@ This function takes a dataset, along with variables names for time and event sta
 }
 \examples{
 
-# Basic linear model example
+# Basic survival model examples
 set.seed(542542522)
 ybin <- sample(0:1, 100, replace = TRUE)
 ybin2 <- sample(0:1, 100, replace = TRUE)
+ybin3 <- sample(c('Dead','Alive'), 100, replace = TRUE)
 y <- rexp(100,.1)
 x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
 x2 <- factor(sample(letters[1:4],100,replace = TRUE))
-my_data <- data.frame(y, ybin,ybin2, x1, x2)
+my_data <- data.frame(y, ybin, ybin2, ybin3, x1, x2)
 Hmisc::label(my_data$x1) <- "X1 Variable"
 
  # Single runs 
 run_pretty_km_output(strata_in = 'x1', model_data = my_data, 
-     time_in = 'y', event_in = 'ybin == 1', time_est = NULL)
+     time_in = 'y', event_in = 'ybin', time_est = NULL)
 run_pretty_km_output(strata_in = 'x1', model_data = my_data, 
-     time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10))
+     time_in = 'y', event_in = 'ybin', time_est = c(5,10))
+run_pretty_km_output(strata_in = 'x2', model_data = my_data, 
+     time_in = 'y', event_in = 'ybin3', ref_or_censor_level = 'Alive', time_est = c(5,10))
 
 # Multiple runs for different variables
 library(dplyr) 
 vars_to_run = c(NA, 'x1', 'x2')
 purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data,
-     time_in = 'y', event_in = 'ybin == 1', time_est = NULL) \%>\% 
+     time_in = 'y', event_in = 'ybin', ref_or_censor_level = '0', time_est = NULL) \%>\% 
    select(Group, Level, everything())
    
 km_info <- purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data, time_in = 'y', 
-     event_in = 'ybin == 1', time_est = c(5,10), surv_est_prefix = 'Year', 
+     event_in = 'ybin3', ref_or_censor_level = 'Alive', time_est = c(5,10), surv_est_prefix = 'Year', 
      title_name = 'Overall Survival') \%>\% 
    select(Group, Level, everything())
    
 km_info2 <- purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data, time_in = 'y', 
-     event_in = 'ybin2 == 1', time_est = c(5,10), surv_est_prefix = 'Year', 
+     event_in = 'ybin2', time_est = c(5,10), surv_est_prefix = 'Year', 
      title_name = 'Cancer Specific Survival') \%>\% 
    select(Group, Level, everything())
 
-library(kableExtra)
 options(knitr.kable.NA = '')
-kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', 
+kableExtra::kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', 
      caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\%
-  collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2) 
+  kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2) 
 
 
   # Real World Example
@@ -97,8 +101,8 @@ kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, 
   vars_to_run = c(NA, 'Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
   
   purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = Bladder_Cancer, 
-       time_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"', time_est = c(24,60), 
-       surv_est_prefix = 'Month', p_digits=5) \%>\% 
+       time_in = 'Survival_Months', event_in = 'Vital_Status', ref_or_censor_level = 'Alive', 
+       time_est = c(24,60), surv_est_prefix = 'Month', p_digits=5) \%>\% 
    select(Group, Level, everything())
   
 }

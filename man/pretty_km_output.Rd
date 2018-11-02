@@ -60,12 +60,10 @@ km_info <- bind_rows(
         group_name = 'x2', title_name = 'Overall Survival---ybin'),
   pretty_km_output(fit = my_fit_y2, time_est = c(5,10), 
         group_name = 'Overall', title_name = 'Overall Survival---ybin2'),
-) \%>\% select(Name, Group, Level, everything())
+) \%>\% select(Group, Level, everything())
 
-library(kableExtra)
-kable(km_info, escape = F, longtable = F, booktabs = TRUE, linesep = '', 
-     caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\% 
-  collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2) \%>\% 
+kableExtra::kable(km_info, 'html', caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\% 
+  kableExtra::collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2)
   
   # Real World Examples
   data(Bladder_Cancer)

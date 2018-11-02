@@ -392,12 +392,10 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #'         group_name = 'x2', title_name = 'Overall Survival---ybin'),
 #'   pretty_km_output(fit = my_fit_y2, time_est = c(5,10), 
 #'         group_name = 'Overall', title_name = 'Overall Survival---ybin2'),
-#' ) %>% select(Name, Group, Level, everything())
+#' ) %>% select(Group, Level, everything())
 #' 
-#' library(kableExtra)
-#' kable(km_info, escape = F, longtable = F, booktabs = TRUE, linesep = '', 
-#'      caption = 'Survival Percentage Estimates at 5 and 10 Years') %>% 
-#'   collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2) %>% 
+#' kableExtra::kable(km_info, 'html', caption = 'Survival Percentage Estimates at 5 and 10 Years') %>% 
+#'   kableExtra::collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2)
 #'   
 #'   # Real World Examples
 #'   data(Bladder_Cancer)
@@ -454,7 +452,6 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
   }
   tmp_surv_est_info_long <- dplyr::bind_cols(Level = tmp_strata_levels, 
                                      Time = tmp_summary$time, Est = tmp_surv_est)
-  names(tmp_surv_est_info_long)[ names(tmp_surv_est_info_long) == 'Time'] = surv_est_prefix
   
   # Need to Replace times after last value
   if (!is.null(fit$strata)) {
@@ -464,7 +461,8 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
     tmp_surv_est_info_long <- bind_cols(tmp_surv_est_info_long, max_times = rep(max_times, nrow(tmp_surv_est_info_long))) %>% 
       mutate(Est = ifelse(Time > max_times, 'N.E.', Est)) %>% select(-max_times)
   }
-
+  names(tmp_surv_est_info_long)[ names(tmp_surv_est_info_long) == 'Time'] = surv_est_prefix
+  
   tmp_surv_est_info <- tmp_surv_est_info_long %>% tidyr::spread_(surv_est_prefix, 'Est', sep = ':') 
   
   # Need to merge in time est with levels, in case entire strata missing. Then replace missing with N.E.
@@ -505,7 +503,8 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' @param strata_in name of strata variable, or NA (default) if no strata desired
 #' @param model_data dataset that contains \code{strata_in}, \code{time_in}, and \code{event_in} variables
 #' @param time_in name of time variable component of outcome measure
-#' @param event_in name of T/F event stauts or expression resulting in T/F scalor (i.e. "Vital_Status == 'Dead'") for the name of event variable component of outcome measure. TRUE represents event (i.e. Death)
+#' @param event_in name of event status variable. If \code{ref_or_censor_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively
+#' @param ref_or_censor_level outcome variable reference level for logistic model, and censor level for cox model.
 #' @param time_est numerical vector of time estimates. If NULL (default) no time estimates are calculated
 #' @param group_name strata variable name. If NULL and strata exists then using variable
 #' @param title_name title to use
@@ -525,44 +524,46 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' 
 #' @examples
 #' 
-#' # Basic linear model example
+#' # Basic survival model examples
 #' set.seed(542542522)
 #' ybin <- sample(0:1, 100, replace = TRUE)
 #' ybin2 <- sample(0:1, 100, replace = TRUE)
+#' ybin3 <- sample(c('Dead','Alive'), 100, replace = TRUE)
 #' y <- rexp(100,.1)
 #' x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
 #' x2 <- factor(sample(letters[1:4],100,replace = TRUE))
-#' my_data <- data.frame(y, ybin,ybin2, x1, x2)
+#' my_data <- data.frame(y, ybin, ybin2, ybin3, x1, x2)
 #' Hmisc::label(my_data$x1) <- "X1 Variable"
 #' 
 #'  # Single runs 
 #' run_pretty_km_output(strata_in = 'x1', model_data = my_data, 
-#'      time_in = 'y', event_in = 'ybin == 1', time_est = NULL)
+#'      time_in = 'y', event_in = 'ybin', time_est = NULL)
 #' run_pretty_km_output(strata_in = 'x1', model_data = my_data, 
-#'      time_in = 'y', event_in = 'ybin == 1', time_est = c(5,10))
+#'      time_in = 'y', event_in = 'ybin', time_est = c(5,10))
+#' run_pretty_km_output(strata_in = 'x2', model_data = my_data, 
+#'      time_in = 'y', event_in = 'ybin3', ref_or_censor_level = 'Alive', time_est = c(5,10))
 #' 
 #' # Multiple runs for different variables
 #' library(dplyr) 
 #' vars_to_run = c(NA, 'x1', 'x2')
 #' purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data,
-#'      time_in = 'y', event_in = 'ybin == 1', time_est = NULL) %>% 
+#'      time_in = 'y', event_in = 'ybin', ref_or_censor_level = '0', time_est = NULL) %>% 
 #'    select(Group, Level, everything())
 #'    
 #' km_info <- purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data, time_in = 'y', 
-#'      event_in = 'ybin == 1', time_est = c(5,10), surv_est_prefix = 'Year', 
+#'      event_in = 'ybin3', ref_or_censor_level = 'Alive', time_est = c(5,10), surv_est_prefix = 'Year', 
 #'      title_name = 'Overall Survival') %>% 
 #'    select(Group, Level, everything())
 #'    
 #' km_info2 <- purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data, time_in = 'y', 
-#'      event_in = 'ybin2 == 1', time_est = c(5,10), surv_est_prefix = 'Year', 
+#'      event_in = 'ybin2', time_est = c(5,10), surv_est_prefix = 'Year', 
 #'      title_name = 'Cancer Specific Survival') %>% 
 #'    select(Group, Level, everything())
 #' 
-#' library(kableExtra)
 #' options(knitr.kable.NA = '')
-#' kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', 
+#' kableExtra::kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', 
 #'      caption = 'Survival Percentage Estimates at 5 and 10 Years') %>%
-#'   collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2) 
+#'   kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2) 
 #' 
 #' 
 #'   # Real World Example
@@ -571,24 +572,40 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #'   vars_to_run = c(NA, 'Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
 #'   
 #'   purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = Bladder_Cancer, 
-#'        time_in = 'Survival_Months', event_in = 'Vital_Status == "Dead"', time_est = c(24,60), 
-#'        surv_est_prefix = 'Month', p_digits=5) %>% 
+#'        time_in = 'Survival_Months', event_in = 'Vital_Status', ref_or_censor_level = 'Alive', 
+#'        time_est = c(24,60), surv_est_prefix = 'Month', p_digits=5) %>% 
 #'    select(Group, Level, everything())
 #'   
 #' @importFrom  Hmisc label
 #' 
 #' @export
 #' 
-run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, time_est = NULL, group_name = NULL, title_name = NULL, conf_level = .95, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, ref_or_censor_level = NULL, time_est = NULL, group_name = NULL, title_name = NULL, conf_level = .95, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
   if (length(strata_in) != 1) stop('"strata_in" must be length of 1')
   .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
   .check_numeric_input(conf_level, lower_bound = 0, upper_bound = 1, scalar = TRUE)
+  
   if (all(time_in != colnames(model_data)))
     stop('"time_in" must be in the "model_data" dataset')
 
+  if (all(event_in != colnames(model_data)))
+    stop('"event_in" must be in the "model_data" dataset')
+  if (length(unique(model_data[,event_in, drop = T])) > 2)
+    stop('"event_in" (',event_in, ') must have only two levels')
+  if (!is.null(ref_or_censor_level)) {
+    if (all(unique(model_data[, event_in, drop = TRUE]) != ref_or_censor_level))
+      stop('"ref_or_censor_level" (',ref_or_censor_level, ') not present in "event_in" (',event_in, ')')
+    model_data[,event_in] <- model_data[,event_in, drop = T] != ref_or_censor_level
+  } 
+  event_levels <- unique(model_data[,event_in, drop = T])
+  if (all(event_levels != TRUE))
+    stop('"event_in" (',event_in, ') must have at least one event')
+  
+  
+  
   if (is.na(strata_in)) {
     if (is.null(group_name)) group_name <- 'Overall'
     tmp_formula <- as.formula(paste("survival::Surv(",time_in,",",event_in,") ~ 1"))
