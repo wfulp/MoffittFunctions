@@ -267,7 +267,7 @@ test_that("pretty_model_output and run_pretty_model_output testing", {
   
   expect_identical(object = pretty_model_output(fit = my_fit_cox, model_data = my_model_data, latex_output = TRUE), 
                expected = expected_output_cox %>% dplyr::select(-`n (events)`))
-  expect_identical(object = run_pretty_model_output(x_in = c('x1','x2','x3'), model_data = my_model_data, y_in = 'y', event_in = 'ybin', ref_or_censor_level = '0', latex_output = TRUE),
+  expect_identical(object = run_pretty_model_output(x_in = c('x1','x2','x3'), model_data = my_model_data, y_in = 'y', event_in = 'ybin', event_level = '1', latex_output = TRUE),
                    expected = expected_output_cox)
   
 })

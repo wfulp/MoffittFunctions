@@ -5,11 +5,10 @@
 \title{Wrapper for Pretty Model Output}
 \usage{
 run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
-  ref_or_censor_level = NULL, title_name = NULL,
-  fail_if_warning = TRUE, conf_level = 0.95,
-  overall_p_test_stat = c("Wald", "LR"), est_digits = 3,
-  p_digits = 4, latex_output = FALSE, sig_alpha = 0.05,
-  background = "yellow", verbose = FALSE, ...)
+  event_level = NULL, title_name = NULL, fail_if_warning = TRUE,
+  conf_level = 0.95, overall_p_test_stat = c("Wald", "LR"),
+  est_digits = 3, p_digits = 4, latex_output = FALSE,
+  sig_alpha = 0.05, background = "yellow", verbose = FALSE, ...)
 }
 \arguments{
 \item{x_in}{name of x variables in model (can be vector of x names)}
@@ -18,9 +17,9 @@ run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
 
 \item{y_in}{name of outcome measure for logistic and linear model, or name of time component in cox model}
 
-\item{event_in}{name of event status variable. Shouled be left NULL for logistic and linear models. If \code{ref_or_censor_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively.}
+\item{event_in}{name of event status variable. Shouled be left NULL for logistic and linear models. If \code{event_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively.}
 
-\item{ref_or_censor_level}{outcome variable reference level for logistic model, and censor level for cox model.}
+\item{event_level}{outcome variable event level for logistic model, and event status level for cox model.}
 
 \item{title_name}{title to use (will be repeated in first column)}
 
@@ -71,7 +70,7 @@ Hmisc::label(my_data$x1) <- "X1 Variable"
  # Single runs 
 run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', event_in = 'ybin')
 run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', 
-     event_in = 'ybin3', ref_or_censor_level = 'Alive')
+     event_in = 'ybin3', event_level = 'Dead')
 run_pretty_model_output(x_in = c('x1','x2'), model_data = my_data, y_in = 'y', event_in = 'ybin')
 run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'ybin', event_in = NULL, verbose = T)
 run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'y', event_in = NULL)
@@ -90,12 +89,12 @@ data(Bladder_Cancer)
 vars_to_run = c('Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
 
 univariate_output <- purrr::map_dfr(vars_to_run, run_pretty_model_output, model_data = Bladder_Cancer, 
-      y_in = 'Survival_Months', event_in = 'Vital_Status', ref_or_censor_level = 'Alive')
+      y_in = 'Survival_Months', event_in = 'Vital_Status', event_level = 'Dead')
 kableExtra::kable(univariate_output, 'html') \%>\% 
       kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 
 multivariable_output <- run_pretty_model_output(vars_to_run, model_data = Bladder_Cancer, 
-      y_in = 'Survival_Months', event_in = 'Vital_Status', ref_or_censor_level = 'Alive')
+      y_in = 'Survival_Months', event_in = 'Vital_Status', event_level = 'Dead')
 kableExtra::kable(multivariable_output, 'html') \%>\% 
       kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 

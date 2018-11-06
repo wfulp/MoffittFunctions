@@ -532,8 +532,8 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' @param x_in name of x variables in model (can be vector of x names)
 #' @param model_data data.frame or tibble that contains \code{x_in}, \code{time_in}, and \code{event_in} variables
 #' @param y_in name of outcome measure for logistic and linear model, or name of time component in cox model
-#' @param event_in name of event status variable. Shouled be left NULL for logistic and linear models. If \code{ref_or_censor_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively.
-#' @param ref_or_censor_level outcome variable reference level for logistic model, and censor level for cox model.
+#' @param event_in name of event status variable. Shouled be left NULL for logistic and linear models. If \code{event_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively.
+#' @param event_level outcome variable event level for logistic model, and event status level for cox model.
 #' @param title_name title to use (will be repeated in first column)
 #' @param fail_if_warning Should program stop and give useful message if there is a warning message when running model (Default is TRUE)
 #' @param conf_level the confidence level required (default is 0.95).
@@ -572,7 +572,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #'  # Single runs 
 #' run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', event_in = 'ybin')
 #' run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', 
-#'      event_in = 'ybin3', ref_or_censor_level = 'Alive')
+#'      event_in = 'ybin3', event_level = 'Dead')
 #' run_pretty_model_output(x_in = c('x1','x2'), model_data = my_data, y_in = 'y', event_in = 'ybin')
 #' run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'ybin', event_in = NULL, verbose = T)
 #' run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'y', event_in = NULL)
@@ -591,12 +591,12 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' vars_to_run = c('Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
 #' 
 #' univariate_output <- purrr::map_dfr(vars_to_run, run_pretty_model_output, model_data = Bladder_Cancer, 
-#'       y_in = 'Survival_Months', event_in = 'Vital_Status', ref_or_censor_level = 'Alive')
+#'       y_in = 'Survival_Months', event_in = 'Vital_Status', event_level = 'Dead')
 #' kableExtra::kable(univariate_output, 'html') %>% 
 #'       kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 #' 
 #' multivariable_output <- run_pretty_model_output(vars_to_run, model_data = Bladder_Cancer, 
-#'       y_in = 'Survival_Months', event_in = 'Vital_Status', ref_or_censor_level = 'Alive')
+#'       y_in = 'Survival_Months', event_in = 'Vital_Status', event_level = 'Dead')
 #' kableExtra::kable(multivariable_output, 'html') %>% 
 #'       kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 #' 
@@ -606,7 +606,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' @export
 #' 
 
-run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, ref_or_censor_level = NULL, title_name = NULL, fail_if_warning = TRUE, conf_level = 0.95, overall_p_test_stat = c('Wald', 'LR'), est_digits = 3, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', verbose = FALSE, ...) {
+run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, event_level = NULL, title_name = NULL, fail_if_warning = TRUE, conf_level = 0.95, overall_p_test_stat = c('Wald', 'LR'), est_digits = 3, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', verbose = FALSE, ...) {
   overall_p_test_stat <- match.arg(overall_p_test_stat)
   .check_numeric_input(est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
@@ -627,14 +627,14 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, ref
     if (length(unique(model_data[,y_in, drop = TRUE])) == 2) {
       # Logistic Model
       # making y_in a factor
-      if (!is.null(ref_or_censor_level)) {
-        if (all(unique(model_data[, y_in, drop = TRUE]) != ref_or_censor_level))
-          stop('"ref_or_censor_level" (',ref_or_censor_level, ') not present in "y_in" (',y_in, ')')
-        model_data[, y_in] <- factor(model_data[, y_in, drop = TRUE] != ref_or_censor_level)
+      if (!is.null(event_level)) {
+        if (all(unique(model_data[, y_in, drop = TRUE]) != event_level))
+          stop('"event_level" (',event_level, ') not present in "y_in" (',y_in, ')')
+        model_data[, y_in] <- factor(model_data[, y_in, drop = TRUE] == event_level)
       } else {
         model_data[, y_in] <- factor(model_data[, y_in, drop = TRUE])
         if (verbose) 
-          message('Since no "ref_or_censor_level" specified setting "',levels(model_data[, y_in, drop = TRUE])[1], '" as outcome reference in logistic model')
+          message('Since no "event_level" specified setting "',levels(model_data[, y_in, drop = TRUE])[2], '" as outcome event level in logistic model')
       }
         if (nlevels(model_data[, y_in, drop = TRUE]) != 2) 
           stop('"y_in" (',y_in, ') must have two levels for logistic model')
@@ -663,10 +663,10 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, ref
     if (length(unique(model_data[,event_in, drop = T])) > 2)
       stop('"event_in" (',event_in, ') must have only two levels')
     
-    if (!is.null(ref_or_censor_level)) {
-      if (all(unique(model_data[, event_in, drop = TRUE]) != ref_or_censor_level))
-        stop('"ref_or_censor_level" (',ref_or_censor_level, ') not present in "event_in" (',event_in, ')')
-      model_data[,event_in] <- model_data[,event_in, drop = T] != ref_or_censor_level
+    if (!is.null(event_level)) {
+      if (all(unique(model_data[, event_in, drop = TRUE]) != event_level))
+        stop('"event_level" (',event_level, ') not present in "event_in" (',event_in, ')')
+      model_data[,event_in] <- model_data[,event_in, drop = T] == event_level
     } 
     event_levels <- unique(model_data[,event_in, drop = T])
     if (all(event_levels != TRUE))
