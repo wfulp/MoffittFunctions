@@ -1,0 +1,103 @@
+---
+title: "Introduction to MoffittFunctions"
+author: "William (Jimmy) Fulp"
+date: "`r Sys.Date()`"
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Introduction to MoffittFunctions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+options(xtable.comment = FALSE, datatable.verbose = FALSE, scipen = 10, knitr.kable.NA = '', knitr.table.format = 'latex')   
+
+```
+
+# Overview
+
+MoffittFunctions is a collection of useful functions designed to assist in analysis and creation of professional reports. The current MoffittFunctions functions can be broken down to the following sections:
+
+- Testing Functions
+  - two_samp_bin_test
+  - two_samp_cont_test
+  - cor_test
+- Fancy Output Functions
+  - pretty_pvalues
+  - stat_paste
+  - paste_tbl_group
+  - pretty_model_output
+  - run_pretty_model_output
+  - pretty_km_output
+  - run_pretty_km_output
+- Utility Functions
+  - round_away_0
+  - get_session_info
+  - get_full_name
+- Example Data
+  - Bladder_Cancer
+
+### Getting Started
+
+```{r, echo=TRUE}
+# Loading MoffittFunctions and Example Dataset
+library(MoffittFunctions)
+data("Bladder_Cancer")
+```
+
+
+# Testing Functions
+
+There are currently three testing functions, performing the appropriate statistical test depending on the data and options, and producing a p value.
+
+
+## Comparing Two Groups (Binary Variable) for a Binary Variable 
+ `two_samp_bin_test()` is used for comparing a binary variable to a binary (two group) variable, with parametric (t.test) and non-parametric (Wilcox Rank-Sum) options. Also pair data is allowed, where there are parametric (paired t.test) and non-parametric (Wilcox Signed-Rank) options. 
+
+`two_samp_bin_test()`
+ 
+ 
+## Comparing Two Groups (Binary Variable) for a Continuous Variable 
+
+`two_samp_cont_test()` is used for comparing a continuous variable to a binary (two group) variable, with parametric (t.test) and non-parametric (Wilcox Rank-Sum) options. Also pair data is allowed, where there are parametric (paired t.test) and non-parametric (Wilcox Signed-Rank) options. 
+
+
+## Comparing Two Continuous Variables
+`cor_test()`
+
+# Fancy Output Functions
+
+
+# Utility Functions
+
+
+```{r, fig.show='hold'}
+plot(1:10)
+plot(10:1)
+```
+
+You can enable figure captions by `fig_caption: yes` in YAML:
+
+    output:
+      rmarkdown::html_vignette:
+        fig_caption: yes
+
+Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+
+## More Examples
+
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
+```
+
+Also a quote using `>`:
+
+> "He who gives up [code] safety for [code] speed deserves neither."
+([via](https://twitter.com/hadleywickham/status/504368538874703872))

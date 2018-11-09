@@ -1,3 +1,4 @@
+inst/doc
 .Rproj.user
 .Rhistory
 .RData
@@ -5,7 +6,6 @@
 
 # HTML of Readme (usually very large); markdown is still tracked
 README.html
-
 # Word temporary
 ~$*.doc*
 # Excel temporary
@@ -14,7 +14,6 @@ README.html
 *.xlk
 # PowerPoint temporary
 ~$*.ppt*
-
 # OS generated files #
 ######################
 .DS_Store

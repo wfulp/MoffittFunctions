@@ -28,6 +28,8 @@ Imports:
     tibble,
     tidyr
 Suggests: 
-    testthat
+    testthat,
+    rmarkdown
 RoxygenNote: 6.1.0
 Encoding: UTF-8
+VignetteBuilder: knitr
