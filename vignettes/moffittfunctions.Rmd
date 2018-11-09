@@ -48,56 +48,61 @@ MoffittFunctions is a collection of useful functions designed to assist in analy
 # Loading MoffittFunctions and Example Dataset
 library(MoffittFunctions)
 data("Bladder_Cancer")
+
+suppressPackageStartupMessages(library(dplyr))
 ```
 
 
 # Testing Functions
 
-There are currently three testing functions, performing the appropriate statistical test depending on the data and options, and producing a p value.
+There are currently three testing functions, performing the appropriate statistical test depending on the data and options, returning a p value.
 
 
 ## Comparing Two Groups (Binary Variable) for a Binary Variable 
- `two_samp_bin_test()` is used for comparing a binary variable to a binary (two group) variable, with parametric (t.test) and non-parametric (Wilcox Rank-Sum) options. Also pair data is allowed, where there are parametric (paired t.test) and non-parametric (Wilcox Signed-Rank) options. 
 
-`two_samp_bin_test()`
- 
- 
+ `two_samp_bin_test()` is used for comparing a binary variable to a binary (two group) variable, with options for Barnard, Fisher's Exact, Chi-Sq, and McNemar tests. 
+
+
+```{r, echo=TRUE}
+
+table(Bladder_Cancer$Vital_Status, Bladder_Cancer$PT0N0)
+
+two_samp_bin_test(x = Bladder_Cancer$Vital_Status, y = Bladder_Cancer$PT0N0, 
+                  method = 'fisher')
+
+```
+
 ## Comparing Two Groups (Binary Variable) for a Continuous Variable 
 
 `two_samp_cont_test()` is used for comparing a continuous variable to a binary (two group) variable, with parametric (t.test) and non-parametric (Wilcox Rank-Sum) options. Also pair data is allowed, where there are parametric (paired t.test) and non-parametric (Wilcox Signed-Rank) options. 
 
 
+
+```{r, echo=TRUE}
+
+by(Bladder_Cancer$Survival_Days, Bladder_Cancer$PT0N0, summary)
+
+two_samp_cont_test(x = Bladder_Cancer$Survival_Days, y = Bladder_Cancer$PT0N0, 
+                   method = 'wilcox')
+
+```
+
 ## Comparing Two Continuous Variables
-`cor_test()`
+
+`cor_test()` is used for comparing two continuous variables, with Pearson, Kendall, and Spearman methods. If Spearman method is chosen and either variable has a tie the approxiate distribution is use in the `coin::spreaman_test()` function. This is usually the perfered method over the asymptotic approximation, which is the method `stats:cor.test()` uses in cases of ties.
+
+
+```{r, echo=TRUE}
+
+cor(Bladder_Cancer$Age_At_Diagnosis, Bladder_Cancer$Survival_Days, 
+    method = 'spearman')
+
+cor_test(x = Bladder_Cancer$Age_At_Diagnosis, y = Bladder_Cancer$Survival_Days,
+         method = 'spearman')
+
+```
 
 # Fancy Output Functions
 
 
 # Utility Functions
-
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
-```
-
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-```
-
-Also a quote using `>`:
-
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
