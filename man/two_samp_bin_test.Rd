@@ -8,7 +8,7 @@ two_samp_bin_test(x, y, method = NA, alternative = c("two.sided",
   "less", "greater"), verbose = FALSE)
 }
 \arguments{
-\item{x}{numeric vector (can include NA values).}
+\item{x}{vector with only 2 levels (can include NA values).}
 
 \item{y}{vector with only 2 levels (can include NA values unless \code{method = 'mcnemar'}).}
 
