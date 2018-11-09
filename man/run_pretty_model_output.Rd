@@ -98,5 +98,4 @@ multivariable_output <- run_pretty_model_output(vars_to_run, model_data = Bladde
 kableExtra::kable(multivariable_output, 'html') \%>\% 
       kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 
-
 }

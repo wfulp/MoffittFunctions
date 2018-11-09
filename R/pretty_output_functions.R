@@ -73,9 +73,9 @@
 
 
 paste_tbl_grp <- function(data, vars_to_paste = 'all', first_name = 'Group1', second_name = 'Group2', sep_val = " vs. ", na_str_out = "---", alternative = c("two.sided", "less", "greater"), digits = 0, trailing_zeros = TRUE, keep_all = TRUE, verbose = FALSE){
-
+  
   #####Checking variables being used
-
+  
   data_here <- as.data.frame(data)
   alternative <- match.arg(alternative)
   .check_numeric_input(digits, lower_bound = 0, scalar = TRUE)
@@ -86,37 +86,37 @@ paste_tbl_grp <- function(data, vars_to_paste = 'all', first_name = 'Group1', se
     vars_to_paste = 'all'
     if (verbose) message('Since "all" specified other entries of vars_to_paste ignored.')
   }
-
+  
   # Defining vars when vars_to_paste set to 'all'
-    if (length(vars_to_paste) == 1 & any(vars_to_paste == 'all')) {
-      #Need to address if one group name a subset of another
-      temp_group1_names <- names(data_here)[(substr(names(data_here), 0, nchar(first_name)) == first_name) &
-                                              (nchar(first_name) > nchar(second_name) | substr(names(data_here), 0, nchar(second_name)) != second_name)]
-      temp_group2_names <- names(data_here)[(substr(names(data_here), 0, nchar(second_name)) == second_name) &
-                                              (nchar(second_name) > nchar(first_name) | substr(names(data_here), 0, nchar(first_name)) != first_name)]
-      temp_group1_measures <- gsub(paste0(first_name,'_'), '', temp_group1_names, fixed = TRUE)
-      temp_group2_measures <- gsub(paste0(second_name,'_'), '', temp_group2_names, fixed = TRUE)
-      vars_to_paste_here <- unique(intersect(temp_group1_measures, temp_group2_measures))
-
-      # Adding speacial cases
-      if (sum(vars_to_paste_here %in% c('median','min','max')) == 3) vars_to_paste_here <- c(vars_to_paste_here, 'median_min_max')
-      if (sum(vars_to_paste_here %in% c('mean','sd')) == 2) vars_to_paste_here <- c(vars_to_paste_here, 'mean_sd')
-
-      if (verbose) message('The following measures will be combined: ', paste0(vars_to_paste_here, collapse = ', '))
-    } else {
-      vars_to_paste_here <- unique(vars_to_paste)
-    }
-    # Giving a message if nothing to return
-    if (any(vars_to_paste == 'all') & length(vars_to_paste_here) == 0) {
-      if (verbose) message('"all" specified, but no matching columns to paste')
-      if (keep_all) return(data) else return(NULL)
-    }
-
+  if (length(vars_to_paste) == 1 & any(vars_to_paste == 'all')) {
+    #Need to address if one group name a subset of another
+    temp_group1_names <- names(data_here)[(substr(names(data_here), 0, nchar(first_name)) == first_name) &
+                                            (nchar(first_name) > nchar(second_name) | substr(names(data_here), 0, nchar(second_name)) != second_name)]
+    temp_group2_names <- names(data_here)[(substr(names(data_here), 0, nchar(second_name)) == second_name) &
+                                            (nchar(second_name) > nchar(first_name) | substr(names(data_here), 0, nchar(first_name)) != first_name)]
+    temp_group1_measures <- gsub(paste0(first_name,'_'), '', temp_group1_names, fixed = TRUE)
+    temp_group2_measures <- gsub(paste0(second_name,'_'), '', temp_group2_names, fixed = TRUE)
+    vars_to_paste_here <- unique(intersect(temp_group1_measures, temp_group2_measures))
+    
+    # Adding speacial cases
+    if (sum(vars_to_paste_here %in% c('median','min','max')) == 3) vars_to_paste_here <- c(vars_to_paste_here, 'median_min_max')
+    if (sum(vars_to_paste_here %in% c('mean','sd')) == 2) vars_to_paste_here <- c(vars_to_paste_here, 'mean_sd')
+    
+    if (verbose) message('The following measures will be combined: ', paste0(vars_to_paste_here, collapse = ', '))
+  } else {
+    vars_to_paste_here <- unique(vars_to_paste)
+  }
+  # Giving a message if nothing to return
+  if (any(vars_to_paste == 'all') & length(vars_to_paste_here) == 0) {
+    if (verbose) message('"all" specified, but no matching columns to paste')
+    if (keep_all) return(data) else return(NULL)
+  }
+  
   # Need to define which variables to check. Special considerations for the predefined values
   vars_to_check <- vars_to_paste_here[!vars_to_paste_here %in% c('median_min_max','mean_sd')]
   if (any(vars_to_paste_here == 'median_min_max')) vars_to_check <- unique(c(vars_to_check, 'median', 'min', 'max'))
   if (any(vars_to_paste_here == 'mean_sd')) vars_to_check <- unique(c(vars_to_check, 'mean', 'sd'))
-
+  
   # Need to check the group1 and group2 version of each variable being pasted
   group1_vars_to_check <- paste0(first_name, '_', vars_to_check)
   group2_vars_to_check <- paste0(second_name, '_', vars_to_check)
@@ -124,22 +124,22 @@ paste_tbl_grp <- function(data, vars_to_paste = 'all', first_name = 'Group1', se
     if (sum(group1_vars_to_check[i] == names(data_here)) != 1) stop('Expecting one column named "', group1_vars_to_check[i] , '" in input dataset, but there are ', sum(group1_vars_to_check[i] == names(data_here)), ' present')
     temp_group1_var <- data_here[, group1_vars_to_check[i] == names(data_here)]
     if (is.numeric(temp_group1_var) & any(!is.na(temp_group1_var))) .check_numeric_input(temp_group1_var)
-
+    
     if (sum(group2_vars_to_check[i] == names(data_here)) != 1) stop('Expecting one column named "', group2_vars_to_check[i] , '" in input dataset, but there are ', sum(group2_vars_to_check[i] == names(data_here)), ' present')
     temp_group2_var <- data_here[, group2_vars_to_check[i] == names(data_here)]
     if (is.numeric(temp_group2_var) & any(!is.na(temp_group2_var))) .check_numeric_input(temp_group2_var)
   }
-
+  
   ##### Pasting variables
-
+  
   # Comparison variable
   comparison_sep <- switch(alternative,
-                            two.sided = sep_val,
-                            less = ' < ',
-                            greater = ' > ')
-
+                           two.sided = sep_val,
+                           less = ' < ',
+                           greater = ' > ')
+  
   comparison_var <- paste0(data_here[, first_name == names(data_here)], comparison_sep, data_here[, second_name == names(data_here)])
-
+  
   # Other variables
   pasted_results <- list()
   for (i in 1:length(vars_to_paste_here)) {
@@ -173,12 +173,12 @@ paste_tbl_grp <- function(data, vars_to_paste = 'all', first_name = 'Group1', se
       first_var_here <- data_here[, paste0(first_name, '_', vars_to_paste_here[i])]
       second_var_here <- data_here[, paste0(second_name, '_', vars_to_paste_here[i])]
       both_var_here <- c(first_var_here, second_var_here)
-
+      
       # Want to set digits to 0 if an integer
       if (is.numeric(both_var_here)) {
         if (any((both_var_here %% 1) != 0)) digits_here = digits else digits_here = 0
       } else digits_here = digits
-
+      
       pasted_results[[i]] <- paste0(ifelse(is.na(first_var_here), na_str_out, .round_if_numeric(first_var_here, digits = digits_here, trailing_zeros = trailing_zeros)),
                                     sep_val,
                                     ifelse(is.na(second_var_here), na_str_out, .round_if_numeric(second_var_here, digits = digits_here, trailing_zeros = trailing_zeros))
@@ -186,9 +186,9 @@ paste_tbl_grp <- function(data, vars_to_paste = 'all', first_name = 'Group1', se
     }
   }
   names(pasted_results) <- paste0(vars_to_paste_here, '_comparison')
-
+  
   pasted_results <- data.frame('Comparison' = comparison_var,pasted_results, stringsAsFactors = FALSE)
-
+  
   # Returning all data if desired
   if (keep_all) {
     index_to_keep <- !names(data_here) %in% c(first_name, second_name, group1_vars_to_check, group2_vars_to_check)
@@ -196,7 +196,7 @@ paste_tbl_grp <- function(data, vars_to_paste = 'all', first_name = 'Group1', se
   } else {
     pasted_results
   }
-
+  
 }
 
 
@@ -248,12 +248,12 @@ paste_tbl_grp <- function(data, vars_to_paste = 'all', first_name = 'Group1', se
 stat_paste = function(stat1, stat2 = NULL, stat3 = NULL, digits = 0, trailing_zeros = TRUE, bound_char = c('(','[','{','|'), sep = ', ', na_str_out = "---"){
   bound_char <- match.arg(bound_char)
   end_bound_char <-   switch(bound_char,
-                      `(` = ')',
-                      `[` = ']',
-                      `{` = '}',
-                      `|` = '|'
+                             `(` = ')',
+                             `[` = ']',
+                             `{` = '}',
+                             `|` = '|'
   )
-
+  
   stat1_pasted_obj <-  ifelse(is.na(stat1), na_str_out, as.character(.round_if_numeric(stat1, digits = digits, trailing_zeros = trailing_zeros)))
   if (is.null(stat2)) {
     pasted_output <- stat1_pasted_obj
@@ -311,35 +311,35 @@ stat_paste = function(stat1, stat2 = NULL, stat3 = NULL, digits = 0, trailing_ze
 
 
 pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, background = NULL, sig_alpha = 0.05, missing_char = '---', include_p = FALSE, trailing_zeros = TRUE){
-
+  
   .check_numeric_input(pvalues, lower_bound = 0, upper_bound = 1)
   .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
   .check_numeric_input(digits, lower_bound = 1, upper_bound = 14, scalar = TRUE, whole_num = TRUE)
-
+  
   #Need to set options for no scientific notation, but set back to user preference on exit
   op <- options()
   options(scipen = 10)
   on.exit(options(op))
-
+  
   lower_cutoff = 10^(-digits)
-
+  
   ## relevant p-value indices for specific assignments
   missing_p = which(is.na(pvalues))
   below_cutoff_p = which(pvalues < lower_cutoff)
   sig_p = which(pvalues < sig_alpha)
-
+  
   if (trailing_zeros) pvalues_new = round_away_0(pvalues, trailing_zeros = TRUE, digits = digits) else pvalues_new = as.character(round_away_0(pvalues, trailing_zeros = F, digits))
-
+  
   ## manipulate and assign pvalues as characters to output pvalue vector
   pvalues_new[missing_p] = missing_char
   pvalues_new[below_cutoff_p] = paste0("<", lower_cutoff)
-
+  
   # the letter 'p' in front of values
   if (include_p) pvalues_new <- ifelse(pvalues_new < lower_cutoff, paste0('p',  pvalues_new), paste0('p=',  pvalues_new))
-
+  
   # formatting
   if (bold == TRUE | italic == TRUE | !is.null(background)) pvalues_new[sig_p] = kableExtra::cell_spec(pvalues_new[sig_p], format = "latex", bold = bold, italic = italic, background = background, escape = FALSE)
-
+  
   pvalues_new
 }
 
@@ -432,7 +432,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
     exp_output <- FALSE
     est_name <- 'Est'
   } 
-
+  
   #Using Variable labels for output, is no label using variable name
   var_names <- all.vars(fit$terms)[-1]
   if (!all(var_names %in% colnames(model_data)))
@@ -485,8 +485,8 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
   
   # Dropping extra variable names (for overall p merging)
   neat_fit <- neat_fit %>%
-   dplyr::mutate(name_sub = ifelse(duplicated(name), '', name),
-          Variable = var_labels[match(name,var_names)])
+    dplyr::mutate(name_sub = ifelse(duplicated(name), '', name),
+                  Variable = var_labels[match(name,var_names)])
   
   ## Type III Overall variable tests
   
@@ -516,10 +516,167 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
   }
   
   neat_fit <- neat_fit %>% dplyr::select(Variable, Level, dplyr::contains('CI'), dplyr::contains('P Value'))
- 
+  
   # Adding Title in front, if given
   if (!is.null(title_name)) dplyr::bind_cols(Name = rep(title_name,nrow(neat_fit)), neat_fit) else neat_fit
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#' Fancy Table Output of KM (survfit) Fit
+#' 
+#' This function takes a Kaplan-Meier model fit object (from survival::survfit) and calculate survival estimates at a specified time, and Median Survival Estimates. This can be performed on an overall KM fit or a fit including a categorical variable (strata).
+#'
+#' @param fit survfit object (with or without single strata variable)
+#' @param time_est numerical vector of time estimates. If NULL (default) no time estimates are calculated
+#' @param group_name strata variable name. If NULL and strata exists then using variable
+#' @param title_name title to use
+#' @param surv_est_prefix prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)
+#' @param surv_est_digits number of digits to round p values for survival estimates for specified times
+#' @param median_est_digits number of digits to round p values for Median Survival Estimates
+#' @param latex_output will this table go into a latex output (making special charaters latex friendly)
+#' 
+#' @details 
+#' Currently works with multiple strata in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} column names may be off.
+#' 
+#' @return
+#' A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Median Estimate}, \code{Time:X} (Survival estimates for each time provided, if any). In no strata variable tibble is one row, otherwise nrows = number of strata levels.
+#' 
+#' @examples
+#' 
+#' # Basic linear model example
+#' set.seed(542542522)
+#' ybin <- sample(0:1, 100, replace = TRUE)
+#' ybin2 <- sample(0:1, 100, replace = TRUE)
+#' y <- rexp(100,.1)
+#' x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
+#' x2 <- factor(sample(letters[1:4],100,replace = TRUE))
+#' my_fit <- survival::survfit(survival::Surv(y, ybin) ~ 1)
+#' my_fit2 <- survival::survfit(survival::Surv(y, ybin) ~ x1)
+#' my_fit3 <- survival::survfit(survival::Surv(y, ybin) ~ x2)
+#' my_fit_y2 <- survival::survfit(survival::Surv(y, ybin2) ~ 1)
+#' 
+#' pretty_km_output(fit = my_fit3, time_est = c(5,10), title_name = 'Overall Fit')
+#' 
+#' library(dplyr) 
+#' km_info <- bind_rows(
+#'   pretty_km_output(fit = my_fit, time_est = c(5,10), 
+#'         group_name = 'Overall', title_name = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit2, time_est = c(5,10), 
+#'         group_name = NULL, title_name = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit3, time_est = c(5,10), 
+#'         group_name = 'x2', title_name = 'Overall Survival---ybin'),
+#'   pretty_km_output(fit = my_fit_y2, time_est = c(5,10), 
+#'         group_name = 'Overall', title_name = 'Overall Survival---ybin2'),
+#' ) %>% select(Group, Level, everything())
+#' 
+#' kableExtra::kable(km_info, 'html', caption = 'Survival Percentage Estimates at 5 and 10 Years') %>% 
+#'   kableExtra::collapse_rows(1:2, row_group_label_position = 'stack', headers_to_remove = 1:2)
+#'   
+#'   # Real World Examples
+#'   data(Bladder_Cancer)
+#'   surv_obj <- survival::Surv(Bladder_Cancer$Survival_Months, Bladder_Cancer$Vital_Status == 'Dead')   
+#'   downstage_fit <- survival::survfit(surv_obj ~ PT0N0, data = Bladder_Cancer)
+#'   
+#'   pretty_km_output(fit = downstage_fit, time_est = c(24, 60), 
+#'        surv_est_prefix = 'Month', surv_est_digits = 3)
+#'   
+#' 
+#' @importFrom  dplyr %>%
+#' @importFrom tibble tibble
+#' 
+#' @export
+
+pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, latex_output =FALSE){
+  # Input Checking
+  if (!is.null(time_est)) {
+    # Want to make sure time_est > 0
+    .check_numeric_input(time_est, lower_bound = 1e-50)
+  } else {
+    # if no time_est requested, setting time_est to 0 and then removing later, to make coding much easier.
+    time_est = 0
+  }
+  .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   
+  # If group name not specified but using strata, will use var name
+  if (is.null(group_name) && !is.null(fit$strata)) 
+    group_name <- gsub('_', ' ', substr(names(fit$strata)[1], 1, regexpr('=', names(fit$strata)[1]) - 1))
+  
+  # Getting specific time_est estimates
+  tmp_summary <- summary(fit, time = time_est, extend = TRUE)
+  tmp_surv_est <-  stat_paste(tmp_summary$surv, tmp_summary$lower, tmp_summary$upper, 
+                              digits = surv_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
+  if (latex_output) tmp_surv_est <- gsub('\\%','\\\\%', tmp_surv_est)
+  
+  if (!is.null(fit$strata)) {
+    tmp_strata_levels <- substr(tmp_summary$strata, regexpr('=', tmp_summary$strata) + 1, nchar(as.vector(tmp_summary$strata)))
+    tmp_all_levels <- tibble::tibble(Level = substr(names(fit$strata), regexpr('=',  names(fit$strata)) + 1, nchar( names(fit$strata))))
+    tmp_med_info <- stat_paste(tmp_summary$table[,'median'], tmp_summary$table[,paste0(fit$conf.int,'LCL')], tmp_summary$table[,paste0(fit$conf.int,'UCL')], 
+                               digits = median_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
+    n_events <- tmp_summary$table[,'events']
+    # Getting max times for each level
+    fit_for_max <- summary(fit, censored = TRUE)
+    last_index <- length(fit_for_max$strata) - match(unique(fit_for_max$strata), rev(fit_for_max$strata)) + 1
+    max_times <- dplyr::bind_cols(tmp_all_levels, max_times = fit_for_max$time[last_index])
+  } else {
+    tmp_strata_levels <- NULL
+    tmp_med_info <-  stat_paste(tmp_summary$table['median'], tmp_summary$table[paste0(fit$conf.int,'LCL')], tmp_summary$table[paste0(fit$conf.int,'UCL')], 
+                                digits = median_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
+    n_events <- tmp_summary$table['events']
+    max_times <- max(summary(fit, censored = TRUE)$time)
+  }
+  tmp_surv_est_info_long <- dplyr::bind_cols(Level = tmp_strata_levels, 
+                                             Time = tmp_summary$time, Est = tmp_surv_est)
+  
+  # Need to Replace times after last value
+  if (!is.null(fit$strata)) {
+    tmp_surv_est_info_long <- dplyr::full_join(tmp_surv_est_info_long, max_times, by = 'Level') %>% 
+      mutate(Est = ifelse(Time > max_times, 'N.E.', Est)) %>% select(-max_times)
+  } else {
+    tmp_surv_est_info_long <- bind_cols(tmp_surv_est_info_long, max_times = rep(max_times, nrow(tmp_surv_est_info_long))) %>% 
+      mutate(Est = ifelse(Time > max_times, 'N.E.', Est)) %>% select(-max_times)
+  }
+  names(tmp_surv_est_info_long)[ names(tmp_surv_est_info_long) == 'Time'] = surv_est_prefix
+  
+  tmp_surv_est_info <- tmp_surv_est_info_long %>% tidyr::spread_(surv_est_prefix, 'Est', sep = ':') 
+  
+  # Need to merge in time est with levels, in case entire strata missing. Then replace missing with N.E.
+  if (!is.null(fit$strata))  tmp_surv_est_info <- dplyr::full_join(tmp_all_levels, tmp_surv_est_info, by = 'Level') 
+  tmp_surv_est_info <- tmp_surv_est_info %>% replace(., is.na(.), 'N.E.')
+  
+  tmp_med_info <- gsub('NA', 'N.E.', tmp_med_info)
+  
+  # Stripping some unnecessary attributes
+  attr(tmp_med_info, 'names') <- NULL
+  attr(n_events, 'names') <- NULL
+  
+  tmp_output <- dplyr::bind_cols(Group = rep(group_name,length(tmp_med_info)),
+                                 N = fit$n, `N Events` = n_events,
+                                 tmp_surv_est_info,
+                                 `Median Estimate` = tmp_med_info) %>% 
+    # putting time variables at end
+    dplyr::select(-dplyr::contains(paste0(surv_est_prefix, ':')), dplyr::everything(), dplyr::contains(paste0(surv_est_prefix, ':')))
+  
+  # Dropping if time = 0 (i.e. no time given)
+  if (all(time_est == 0))  tmp_output <- tmp_output %>% dplyr::select(-dplyr::contains(surv_est_prefix))
+  
+  # Reorder if strata
+  if (!is.null(fit$strata))  tmp_output <- tmp_output %>% dplyr::select(Group, Level, dplyr::everything())
+  
+  # Adding Title in front, if given
+  if (!is.null(title_name)) dplyr::bind_cols(Name = rep(title_name,length(tmp_med_info)), tmp_output) else tmp_output
 }
 
 
@@ -600,12 +757,10 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' kableExtra::kable(multivariable_output, 'html') %>% 
 #'       kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2)
 #' 
-#' 
 #' @importFrom  Hmisc label
 #' 
 #' @export
 #' 
-
 run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, event_level = NULL, title_name = NULL, fail_if_warning = TRUE, conf_level = 0.95, overall_p_test_stat = c('Wald', 'LR'), est_digits = 3, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', verbose = FALSE, ...) {
   overall_p_test_stat <- match.arg(overall_p_test_stat)
   .check_numeric_input(est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
@@ -636,14 +791,14 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, eve
         if (verbose) 
           message('Since no "event_level" specified setting "',levels(model_data[, y_in, drop = TRUE])[2], '" as outcome event level in logistic model')
       }
-        if (nlevels(model_data[, y_in, drop = TRUE]) != 2) 
-          stop('"y_in" (',y_in, ') must have two levels for logistic model')
+      if (nlevels(model_data[, y_in, drop = TRUE]) != 2) 
+        stop('"y_in" (',y_in, ') must have two levels for logistic model')
       tmp_fit <- tryCatch(expr =  glm(tmp_formula, data = model_data, family = binomial(link = "logit")), 
                           error = function(c) stop('Logistic model with "',deparse(tmp_formula), '" formula has error(s) running'))
       if (fail_if_warning) {
         tmp_confint <- tryCatch(expr = suppressMessages(confint(tmp_fit)), 
-                            error = function(c) stop('Logistic model with "',deparse(tmp_formula), '" formula has error(s) calculating CI(s)'), 
-                            warning = function(c) stop('Logistic model with "',deparse(tmp_formula), '" formula has Inf CI(s); most likely a model error'))
+                                error = function(c) stop('Logistic model with "',deparse(tmp_formula), '" formula has error(s) calculating CI(s)'), 
+                                warning = function(c) stop('Logistic model with "',deparse(tmp_formula), '" formula has Inf CI(s); most likely a model error'))
       }
     } else {
       # Linear Model
@@ -672,7 +827,7 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, eve
     if (all(event_levels != TRUE))
       stop('"event_in" (',event_in, ') must have at least one event')
     
-
+    
     tmp_formula <- as.formula(paste("survival::Surv(",y_in,",",event_in,") ~ ", x_in_paste))
     if (fail_if_warning) {
       tmp_fit <- tryCatch(expr = survival::coxph(tmp_formula, data = model_data), 
@@ -692,4 +847,152 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, eve
   if (!is.null(event_in)) names(tmp_output)[names(tmp_output) == 'n'] <- 'n (events)'
   
   tmp_output
+}
+
+
+
+
+
+
+
+#' Wrapper for KM Model Output, with Log-Rank p value
+#' 
+#' This function takes a dataset, along with variables names for time and event status for KM fit, and possibly strata
+#'
+#' @param strata_in name of strata variable, or NA (default) if no strata desired
+#' @param model_data dataset that contains \code{strata_in}, \code{time_in}, and \code{event_in} variables
+#' @param time_in name of time variable component of outcome measure
+#' @param event_in name of event status variable. If \code{event_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively
+#' @param event_level event level for event status variable.
+#' @param time_est numerical vector of time estimates. If NULL (default) no time estimates are calculated
+#' @param group_name strata variable name. If NULL and strata exists then using variable
+#' @param title_name title to use
+#' @param conf_level the confidence level required (default is 0.95).
+#' @param surv_est_prefix prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)
+#' @param surv_est_digits number of digits to round p values for survival estimates for specified times
+#' @param median_est_digits number of digits to round p values for Median Survival Estimates
+#' @param p_digits number of digits to round p values for Log-Rank p value
+#' @param latex_output will this table go into a latex output (making special charaters latex friendly)
+#' @param sig_alpha the defined significance level. Default = 0.05
+#' @param background background color of significant values, or no highlighting if NULL. Default is "yellow"
+#' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})
+#
+#'  
+#' @return
+#' A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Time:X} (Survival estimates for each time provided), \code{Median Estimate}. In no strata variable tibble is one row, otherwise nrows = number of strata levels.
+#' 
+#' @examples
+#' 
+#' # Basic survival model examples
+#' set.seed(542542522)
+#' ybin <- sample(0:1, 100, replace = TRUE)
+#' ybin2 <- sample(0:1, 100, replace = TRUE)
+#' ybin3 <- sample(c('Dead','Alive'), 100, replace = TRUE)
+#' y <- rexp(100,.1)
+#' x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
+#' x2 <- factor(sample(letters[1:4],100,replace = TRUE))
+#' my_data <- data.frame(y, ybin, ybin2, ybin3, x1, x2)
+#' Hmisc::label(my_data$x1) <- "X1 Variable"
+#' 
+#'  # Single runs 
+#' run_pretty_km_output(strata_in = 'x1', model_data = my_data, 
+#'      time_in = 'y', event_in = 'ybin', time_est = NULL)
+#' run_pretty_km_output(strata_in = 'x1', model_data = my_data, 
+#'      time_in = 'y', event_in = 'ybin', time_est = c(5,10))
+#' run_pretty_km_output(strata_in = 'x2', model_data = my_data, 
+#'      time_in = 'y', event_in = 'ybin3', event_level = 'Dead', time_est = c(5,10))
+#' 
+#' # Multiple runs for different variables
+#' library(dplyr) 
+#' vars_to_run = c(NA, 'x1', 'x2')
+#' purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data,
+#'      time_in = 'y', event_in = 'ybin', event_level = '0', time_est = NULL) %>% 
+#'    select(Group, Level, everything())
+#'    
+#' km_info <- purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data, time_in = 'y', 
+#'      event_in = 'ybin3', event_level = 'Dead', time_est = c(5,10), surv_est_prefix = 'Year', 
+#'      title_name = 'Overall Survival') %>% 
+#'    select(Group, Level, everything())
+#'    
+#' km_info2 <- purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_data, time_in = 'y', 
+#'      event_in = 'ybin2', time_est = c(5,10), surv_est_prefix = 'Year', 
+#'      title_name = 'Cancer Specific Survival') %>% 
+#'    select(Group, Level, everything())
+#' 
+#' options(knitr.kable.NA = '')
+#' kableExtra::kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', 
+#'      caption = 'Survival Percentage Estimates at 5 and 10 Years') %>%
+#'   kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2) 
+#' 
+#' 
+#'   # Real World Example
+#'   data(Bladder_Cancer)
+#'   
+#'   vars_to_run = c(NA, 'Gender', 'Clinical_Stage_Grouped', 'PT0N0', 'Any_Downstaging')
+#'   
+#'   purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = Bladder_Cancer, 
+#'        time_in = 'Survival_Months', event_in = 'Vital_Status', event_level = 'Dead', 
+#'        time_est = c(24,60), surv_est_prefix = 'Month', p_digits=5) %>% 
+#'    select(Group, Level, everything())
+#'   
+#' @importFrom  Hmisc label
+#' 
+#' @export
+#' 
+run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, event_level = NULL, time_est = NULL, group_name = NULL, title_name = NULL, conf_level = .95, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+  if (length(strata_in) != 1) stop('"strata_in" must be length of 1')
+  .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
+  .check_numeric_input(conf_level, lower_bound = 0, upper_bound = 1, scalar = TRUE)
+  
+  if (all(time_in != colnames(model_data)))
+    stop('"time_in" must be in the "model_data" dataset')
+  
+  if (all(event_in != colnames(model_data)))
+    stop('"event_in" must be in the "model_data" dataset')
+  if (length(unique(model_data[,event_in, drop = T])) > 2)
+    stop('"event_in" (',event_in, ') must have only two levels')
+  if (!is.null(event_level)) {
+    if (all(unique(model_data[, event_in, drop = TRUE]) != event_level))
+      stop('"event_level" (',event_level, ') not present in "event_in" (',event_in, ')')
+    model_data[,event_in] <- model_data[,event_in, drop = T] == event_level
+  } 
+  event_levels <- unique(model_data[,event_in, drop = T])
+  if (all(event_levels != TRUE))
+    stop('"event_in" (',event_in, ') must have at least one event')
+  
+  
+  
+  if (is.na(strata_in)) {
+    if (is.null(group_name)) group_name <- 'Overall'
+    tmp_formula <- as.formula(paste("survival::Surv(",time_in,",",event_in,") ~ 1"))
+  } else {
+    if (!all(na.omit(strata_in) %in% colnames(model_data)))
+      stop('All variables used in the "strata_in" must be in the "model_data" dataset')
+    if (is.null(group_name)) {
+      #Using label if possible
+      if (Hmisc::label(model_data[,strata_in]) != '') 
+        group_name <- Hmisc::label(model_data[,strata_in]) 
+      else group_name <- gsub('_', ' ', strata_in)
+    }
+    tmp_formula <- as.formula(paste("survival::Surv(",time_in,",",event_in,") ~ ", strata_in))
+    tmp_pval <-  pchisq(survival::survdiff(formula = tmp_formula, data = model_data)$chi, 
+                        length(survival::survdiff(formula = tmp_formula, data = model_data)$n) - 1, 
+                        lower.tail = FALSE)
+    if (latex_output) {
+      tmp_p_info <- pretty_pvalues(tmp_pval, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = background, ...)
+    } else {
+      tmp_p_info <- pretty_pvalues(tmp_pval, digits = p_digits, trailing_zeros = TRUE)
+    }
+  }
+  
+  tmp_fit <- survival::survfit(tmp_formula, model_data, conf.int = conf_level)
+  tmp_km_output <- pretty_km_output(fit = tmp_fit, time_est = time_est, group_name = group_name, title_name = title_name, surv_est_prefix = surv_est_prefix, surv_est_digits = surv_est_digits, median_est_digits = median_est_digits, latex_output = latex_output)
+  
+  if (is.na(strata_in)) 
+    tmp_km_output else 
+      dplyr::bind_cols(tmp_km_output, `Log-Rank P` = c(tmp_p_info, rep('', nrow(tmp_km_output) - 1)))
+  
 }

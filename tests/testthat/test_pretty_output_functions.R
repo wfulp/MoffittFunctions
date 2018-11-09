@@ -271,3 +271,43 @@ test_that("pretty_model_output and run_pretty_model_output testing", {
                    expected = expected_output_cox)
   
 })
+
+test_that("pretty_km_output and run_pretty_km_output testing", {
+  set.seed(542542522)
+  ybin <- sample(0:1, 100, replace = TRUE)
+  ybin2 <- sample(0:1, 100, replace = TRUE)
+  y <- rexp(100,.1)
+  x1 <- factor(sample(LETTERS[1:2],100,replace = TRUE))
+  x2 <- factor(sample(letters[1:4],100,replace = TRUE))
+  my_fit <- survival::survfit(survival::Surv(y, ybin) ~ 1)
+  my_fit2 <- survival::survfit(survival::Surv(y, ybin) ~ x1)
+  my_fit3 <- survival::survfit(survival::Surv(y, ybin) ~ x2)
+  my_fit3_p <- survival::survdiff(survival::Surv(y, ybin) ~ x2)
+  my_fit_y2 <- survival::survfit(survival::Surv(y, ybin2) ~ 1)
+  my_data <- data.frame(y, ybin,ybin2, x1, x2)
+  
+  # Getting output by hand for my_fit3 for 5 and 10 estimates
+  expected_output <- tibble::tibble(
+    Name = rep('Overall Fit', nlevels(x2)), 
+    Group = 'x2', 
+    Level = levels(x2), 
+    N = my_fit3$n, `N Events` = summary(my_fit3)$table[,'events'],
+    `Median Estimate` = gsub('NA','N.E.',paste0(round_away_0(summary(my_fit3)$table[,'median'], digits = 1, trailing_zeros = T), ' (',
+                               round_away_0(summary(my_fit3)$table[,'0.95LCL'], digits = 1, trailing_zeros = T), ', ',
+                               round_away_0(summary(my_fit3)$table[,'0.95UCL'], digits = 1, trailing_zeros = T), ')')),
+    `Time:5` = gsub('NA','N.E.',paste0(round_away_0(summary(my_fit3, time = 5)$surv, digits = 2, trailing_zeros = T), ' (',
+                                       round_away_0(summary(my_fit3, time = 5)$lower, digits = 2, trailing_zeros = T), ', ',
+                                       round_away_0(summary(my_fit3, time = 5)$upper, digits = 2, trailing_zeros = T), ')')),
+    `Time:10` = gsub('NA','N.E.',paste0(round_away_0(summary(my_fit3, time = 10)$surv, digits = 2, trailing_zeros = T), ' (',
+                                       round_away_0(summary(my_fit3, time = 10)$lower, digits = 2, trailing_zeros = T), ', ',
+                                       round_away_0(summary(my_fit3, time = 10)$upper, digits = 2, trailing_zeros = T), ')')),
+    `Log-Rank P` = c(round_away_0(pchisq(my_fit3_p$chi, length(my_fit3_p$n) - 1, lower.tail = FALSE), 4),rep('',nlevels(x2) - 1))
+  )
+  
+  expect_equal(object = pretty_km_output(fit = my_fit3, time_est = c(5,10), title_name = 'Overall Fit'), 
+               expected = expected_output %>% select(-`Log-Rank P`))
+  
+  expect_equal(object = run_pretty_km_output(strata_in = 'x2', model_data = my_data, time_in = 'y', event_in = 'ybin', time_est = c(5,10), title_name = 'Overall Fit'), 
+               expected = expected_output)
+  
+})

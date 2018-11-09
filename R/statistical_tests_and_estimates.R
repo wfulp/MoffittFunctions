@@ -209,7 +209,7 @@ two_samp_bin_test <- function(x, y, method = NA, alternative = c("two.sided", "l
 #' @param method a character string indicating which correlation coefficient is to be used for the test. One of "pearson", "kendall", or "spearman", can be abbreviated
 #' @param seed seed (only used if \code{method = "spearman"})
 #' @param B number of reps (only used if \code{method = "spearman"})
-#' @param exact if no ties should you do exact (TRUE) or asymptotic (FALSE) method. Exact method is the default (only used if \code{method = "spearman" (and no ties) or "kendall"})
+#' @param exact Should exact method be used. Ingorned it \code{method = "spearman"} and ties present
 #' @param verbose a logical variable indicating if warnings and messages should be displayed
 #' @return spearman_test pvalue
 #' @details
