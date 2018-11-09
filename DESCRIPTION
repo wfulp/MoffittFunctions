@@ -1,5 +1,5 @@
 Package: MoffittFunctions
-Title: Moffitt Biostat Functions
+Title: Moffitt Functions
 Version: 0.1.2
 Authors@R: c(person("Jimmy", "Fulp",  email = "William.Fulp@moffitt.org", role = c("aut", "cre")),
              person("Ram", "Thapa",  email = "Ram.Thapa@moffitt.org", role = "aut"),
@@ -9,8 +9,11 @@ Authors: William (Jimmy) Fulp, Ram Thapa, Zachary Thompson
 Description: Statistical, data processing, and annotation functions for Moffitt Biostat.
 License: GPL-3
 LazyData: true
+Depends:
+    R (>= 2.10) 
 Imports: 
     broom (>= 0.5.0),
+    car,
     coin,
     data.table,
     devtools (>= 2.0.0),
