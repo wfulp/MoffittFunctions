@@ -25,3 +25,8 @@ README.html
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Vignettes Output Files
+vignettes/*.html
+vignettes/*.R
+vignettes/*.pdf
