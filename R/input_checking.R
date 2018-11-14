@@ -8,7 +8,6 @@
 #' @param scalar logical value indicating if the checked value should only had an length of 1
 #' @param whole_num logical value indicating if the checked value should be a whole number
 #' @param allow_NA logical value indicating if allowing all NA
-
 #'
 #' @examples
 #' example_vals <- c(1:10,NA,100)

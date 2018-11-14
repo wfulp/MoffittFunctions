@@ -1,17 +1,32 @@
-# History files
-.Rhistory
-
-# Example code in package build process
-*-Ex.R
-
-# R data files from past sessions
-.Rdata
-
-# RStudio files
-.Rproj.user/
+Meta
+doc
+inst/doc
 .Rproj.user
-packrat/lib*/
-*.Rproj
+.Rhistory
+.RData
+.Ruserdata
 
-# Mac detritus
+# HTML of Readme (usually very large); markdown is still tracked
+README.html
+# Word temporary
+~$*.doc*
+# Excel temporary
+~$*.xls*
+# Excel Backup File
+*.xlk
+# PowerPoint temporary
+~$*.ppt*
+# OS generated files #
+######################
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Vignettes Output Files
+vignettes/*.html
+vignettes/*.R
+vignettes/*.pdf

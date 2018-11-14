@@ -139,7 +139,7 @@ two_samp_cont_test <- function(x, y, method = c('wilcox', 't.test'), paired = FA
 #'
 #' Either Barnard, Fisher's, or Chi-sq test performed for unpaired data and McNemar's test for paired data
 #'
-#' @param x numeric vector (can include NA values).
+#' @param x vector with only 2 levels (can include NA values).
 #' @param y vector with only 2 levels (can include NA values unless \code{method = 'mcnemar'}).
 #' @param method what test to run ("barnard", "fisher" ,"chi.sq" , "mcnemar"). No default so user must enter one of the four selections
 #' @param alternative a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less". You can specify just the initial letter. Only "two.sided" available for \code{method = 'chi.sq' or 'mcnemar'}
@@ -209,7 +209,7 @@ two_samp_bin_test <- function(x, y, method = NA, alternative = c("two.sided", "l
 #' @param method a character string indicating which correlation coefficient is to be used for the test. One of "pearson", "kendall", or "spearman", can be abbreviated
 #' @param seed seed (only used if \code{method = "spearman"})
 #' @param B number of reps (only used if \code{method = "spearman"})
-#' @param exact if no ties should you do exact (TRUE) or asymptotic (FALSE) method. Exact method is the default (only used if \code{method = "spearman" (and no ties) or "kendall"})
+#' @param exact Should exact method be used. Ingorned it \code{method = "spearman"} and ties present
 #' @param verbose a logical variable indicating if warnings and messages should be displayed
 #' @return spearman_test pvalue
 #' @details

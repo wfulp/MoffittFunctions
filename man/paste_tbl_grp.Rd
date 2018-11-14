@@ -45,7 +45,8 @@ User must use consistant naming throughout, with a underscore to separate the gr
 }
 \examples{
 
-
+# Same examples on data.table
+library(data.table)
 data(exampleData_BAMA)
 
 descriptive_stats_by_group <- exampleData_BAMA[, .(
@@ -70,7 +71,7 @@ paste_tbl_grp(data = descriptive_stats_by_group, vars_to_paste = 'all',
    alternative = 'less', digits = 5, keep_all = FALSE)
 
 
-# Same example wit tidyverse (dplyr+tidyr) with some custom functions
+# Same example with tidyverse (dplyr+tidyr) with some custom functions
 
 library(dplyr)
 library(tidyr)

@@ -50,11 +50,9 @@ stat_paste(c(rep(5,5),NA),c(1:5,NA),c(1,NA,2,NA,3,NA),bound_char = '[')
 
 library(data.table)
 data(testData_BAMA)
-testData_BAMA [, .(
+testData_BAMA [!is.na(magnitude), .(
   median_min_max = stat_paste(
-     median(magnitude, na.rm = TRUE),
-     min(magnitude, na.rm = TRUE),
-     max(magnitude, na.rm = TRUE)
+     median(magnitude), min(magnitude), max(magnitude)
      )), by = .(antigen, visit, group)]
 
 }
