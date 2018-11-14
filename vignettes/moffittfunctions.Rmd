@@ -99,6 +99,8 @@ devtools::install_git(
   credentials = cred)
 ```
 
+RStudio you can **Global Options -> Git/SVN** to see SSH path, and to make SSH key if needed
+
 Once installed, in RStudio go to **File -> New File -> R Markdown -> From Template -> Moffitt PDF Report** to start a new Markdown report using the template. Within the template there is code to load and make use of most of the `MoffittFunctions` functionality.
 
 ## Example Dataset
@@ -167,7 +169,7 @@ pvalue_example = c(1, 0.06753, 0.004435, NA, 1e-16, 0.563533)
 # For simple p value display
 pretty_pvalues(pvalue_example, digits = 3)
 
-# For display in repory
+# For display in report
 table_p_Values <- pretty_pvalues(pvalue_example, digits = 3, background = "yellow")
 kableExtra::kable(table_p_Values, format = 'latex', escape = FALSE, 
                   col.names = c("P-values"), caption = 'Fancy P Values')
@@ -178,7 +180,7 @@ You can also specify if you want `p=` pasted on the front of the p values.
 
 ## Basic Combining of Variables
 
-` stat_paste()` is used to combined two or three statistics together, allowing for different rounding and bound character specifications. Common uses for this function are for:
+` stat_paste()` is used to combine two or three statistics together, allowing for different rounding and bound character specifications. Common uses for this function are for:
 
 - Mean (sd)
 - Median [min, max]
@@ -253,6 +255,8 @@ kableExtra::kable(summary_info, format = 'latex', escape = TRUE, booktabs = TRUE
 `pretty_model_output()` and `run_pretty_model_output()` are used to produce professional tables for single or multiple Linear, Logistic, or Cox Proportional-Hazards Regression Models, calculating estimates, odds ratios, or hazard ratios, respectively, with confidence intervals. P values are also produced. For categorical variables with 3+ levels overall Type 3 p values are calculated (matches SAS's default overall p values), in addition to p values comparing to the first level (reference).
 
 `pretty_model_output()` uses the model fits, while `run_pretty_model_output()` uses the variables and dataset, running the desired model. The `run_pretty_model_output()` will use variable labels if they exist (created by the `Hmisc::label()` function). Many details can be adjusted, such as overall test method ("Wald" or "LR"), title (will be added as column), confidence level, estimate and p value rounded digits, significant alpha level for highlighting along with color, italic, and bolding p value options, and latex or non-latex desired output.
+
+In `run_pretty_model_output()`, `y_in`, `event_in`, and `event_level` are used defined differently, depending on the type of model. For Linear Regression `y_in` is the dependent variable, and `event_in` and `event_level` are left NULL. For Logistic Regression `y_in` is the dependent variable, `event_level` is the event level of the variable (i.e. "1" or "Response"), and `event_in` is left NULL. For Cox Regression `y_in` is the time component, `event_in` is the event status variable, and `event_level` is the event level of the `event_in` variable (i.e. "1" or "Dead"). 
 
 \clearpage
 
@@ -392,7 +396,7 @@ pretty_model_output(fit = my_fit, model_data = Bladder_Cancer)
 
 vars_to_run = c('Age_At_Diagnosis', 'Gender', 'Clinical_Stage_Grouped', 'Histology_Grouped')
 
-# Using run_pretty_model_output() for multiple univariate logistic regression models
+# Using run_pretty_model_output() for multiple univariate Cox regression models
 # Use purrr::map_dfr function to run the run_pretty_model_output() multiple times
 cox_univariate_output <- purrr::map_dfr(
   vars_to_run, run_pretty_model_output, model_data = Bladder_Cancer, 
@@ -411,7 +415,7 @@ kableExtra::kable(
 
 ```{r}
 
-# Using run_pretty_model_output() for a multivariable logistic regression model
+# Using run_pretty_model_output() for a multivariable Cox regression model
 cox_multivariable_output <- run_pretty_model_output(
   x_in = vars_to_run, model_data = Bladder_Cancer, y_in = 'Survival_Months', 
   event_in = 'Vital_Status', event_level = 'Dead', latex_output = TRUE)
@@ -484,7 +488,7 @@ kableExtra::kable(km_output, 'latex', escape = F, booktabs = TRUE, linesep = '',
 
 # Utility Functions
 
-`round_away_0()` is a function to properly peform mathamatical rounding (i.e. rounding away from 0 when tied), as opposed to the `round()` function, which rounds to the nearest even number when tied. Also `round_away_0()` allows for trailing zeros (i.e. 0.100 if rounding to 3 digits). 
+`round_away_0()` is a function to properly perform mathematical rounding (i.e. rounding away from 0 when tied), as opposed to the `round()` function, which rounds to the nearest even number when tied. Also `round_away_0()` allows for trailing zeros (i.e. 0.100 if rounding to 3 digits). 
 
 ```{r}
 vals_to_round = c(NA,-3.5:3.5)
@@ -494,7 +498,7 @@ round_away_0(vals_to_round)
 round_away_0(vals_to_round, digits = 2, trailing_zeros = TRUE)
 ```
 
-`get_session_info()` produces reproducibility tables, which are great to add to the end of reports. The first table gives Software Session Information and the second table gives Software Package Version Information `get_full_name()` is a function used by `get_session_info()` to get the user's name, based on user's ID.
+`get_session_info()` produces reproducible tables, which are great to add to the end of reports. The first table gives Software Session Information and the second table gives Software Package Version Information `get_full_name()` is a function used by `get_session_info()` to get the user's name, based on user's ID.
 
 ```{r}
 my_session_info <- get_session_info()
