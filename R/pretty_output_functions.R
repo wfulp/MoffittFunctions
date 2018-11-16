@@ -613,14 +613,14 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, eve
   if (length(y_in) != 1) stop('"y_in" must be length of 1')
   if (all(y_in != colnames(model_data))) 
     stop('"y_in" (',y_in, ') not in the "model_data" dataset')
-  if (length(unique(model_data[,y_in, drop = TRUE])) <= 1)
+  if (length(unique(na.omit(model_data[,y_in, drop = TRUE]))) <= 1)
     stop('"y_in" (',y_in, ') must have more than one unique value')
   
   x_in_paste = paste0(x_in, collapse = ' + ')
   
   if (is.null(event_in)) {
     tmp_formula <- as.formula(paste(y_in, " ~ ", x_in_paste))
-    if (length(unique(model_data[,y_in, drop = TRUE])) == 2) {
+    if (length(unique(na.omit(model_data[,y_in, drop = TRUE]))) == 2) {
       # Logistic Model
       # making y_in a factor
       if (!is.null(event_level)) {
@@ -656,7 +656,7 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, eve
     # Cox Model
     if (all(event_in != colnames(model_data))) 
       stop('"event_in" (',event_in, ') not in the "model_data" dataset')
-    if (length(unique(model_data[,event_in, drop = T])) > 2)
+    if (length(unique(na.omit(model_data[,event_in, drop = T]))) > 2)
       stop('"event_in" (',event_in, ') must have only two levels')
     
     if (!is.null(event_level)) {
@@ -950,7 +950,7 @@ run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, 
   
   if (all(event_in != colnames(model_data)))
     stop('"event_in" must be in the "model_data" dataset')
-  if (length(unique(model_data[,event_in, drop = T])) > 2)
+  if (length(unique(na.omit(model_data[,event_in, drop = T]))) > 2)
     stop('"event_in" (',event_in, ') must have only two levels')
   if (!is.null(event_level)) {
     if (all(unique(model_data[, event_in, drop = TRUE]) != event_level))
