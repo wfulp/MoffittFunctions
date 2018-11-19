@@ -484,7 +484,9 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
   # Dropping extra variable names (for overall p merging)
   neat_fit <- neat_fit %>%
     dplyr::mutate(name_sub = ifelse(duplicated(name), '', name),
-                  Variable = var_labels[match(name,var_names)])
+                  Variable = var_labels[match(name,var_names)],
+                  # Need to add in interaction names
+                  Variable = ifelse(is.na(Variable), name, Variable))
   
   ## Type III Overall variable tests
   
