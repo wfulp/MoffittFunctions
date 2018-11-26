@@ -4,14 +4,23 @@
 \alias{pretty_pvalues}
 \title{Round and format a vector of p-values}
 \usage{
-pretty_pvalues(pvalues, digits = 3, bold = FALSE, italic = FALSE,
-  background = NULL, sig_alpha = 0.05, missing_char = "---",
-  include_p = FALSE, trailing_zeros = TRUE)
+pretty_pvalues(pvalues, digits = 3, missing_char = "---",
+  include_p = FALSE, trailing_zeros = TRUE, output_type = NULL,
+  bold = FALSE, italic = FALSE, background = NULL,
+  sig_alpha = 0.05)
 }
 \arguments{
 \item{pvalues}{numeric vector of raw p-values to be formatted}
 
 \item{digits}{number of digits to round to; values with zeros past this number of digits are truncated}
+
+\item{missing_char}{character string that will replace missing values from the p-value vector. Default = "---"}
+
+\item{include_p}{TRUE or FALSE: set to TRUE to print "p = " before each p-value}
+
+\item{trailing_zeros}{TRUE or FALSE: default = TRUE, p-values are formatted with trailing zeros to the defined number of digits (i.e. 0.100 instead of 0.1 if digits= 3)}
+
+\item{output_type}{output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)}
 
 \item{bold}{TRUE or FALSE: set to TRUE to bold p-values < the defined significance level}
 
@@ -20,12 +29,6 @@ pretty_pvalues(pvalues, digits = 3, bold = FALSE, italic = FALSE,
 \item{background}{highlight color for p-values < the defined significance level. Default = NULL (no highlighting)}
 
 \item{sig_alpha}{the defined significance level. Default = 0.05}
-
-\item{missing_char}{character string that will replace missing values from the p-value vector. Default = "---"}
-
-\item{include_p}{TRUE or FALSE: set to TRUE to print "p = " before each p-value}
-
-\item{trailing_zeros}{TRUE or FALSE: default = TRUE, p-values are formatted with trailing zeros to the defined number of digits (i.e. 0.100 instead of 0.1 if digits = 3)}
 }
 \value{
 Vector of transformed p-values for table output

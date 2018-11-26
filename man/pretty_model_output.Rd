@@ -6,7 +6,7 @@
 \usage{
 pretty_model_output(fit, model_data, overall_p_test_stat = c("Wald",
   "LR"), title_name = NULL, conf_level = 0.95, est_digits = 3,
-  p_digits = 4, latex_output = FALSE, sig_alpha = 0.05,
+  p_digits = 4, output_type = NULL, sig_alpha = 0.05,
   background = "yellow", ...)
 }
 \arguments{
@@ -24,13 +24,13 @@ pretty_model_output(fit, model_data, overall_p_test_stat = c("Wald",
 
 \item{p_digits}{number of digits to round p values (default is 4)}
 
-\item{latex_output}{will this table go into a latex output (making special charaters latex friendly)}
+\item{output_type}{output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)}
 
-\item{sig_alpha}{the defined significance level for highlighting. Default = 0.05 (Only used if latex_output = TRUE)}
+\item{sig_alpha}{the defined significance level for highlighting. Default = 0.05 (Only used if output_type is not NULL)}
 
-\item{background}{background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if latex_output = TRUE)}
+\item{background}{background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if output_type is not NULL)}
 
-\item{...}{other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic}) (Only used if latex_output = TRUE)}
+\item{...}{other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic}) (Only used if output_type is not NULL)}
 }
 \value{
 A tibble with: \code{Name} (if provided), \code{Variable}, \code{Level}, \code{Est/OR/HR (95\% CI)}, \code{P Value} (for categorical variables comparing to reference), \code{Overall P Value} (for categorical variables with 3+ levels).

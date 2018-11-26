@@ -7,7 +7,7 @@
 run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
   event_level = NULL, title_name = NULL, fail_if_warning = TRUE,
   conf_level = 0.95, overall_p_test_stat = c("Wald", "LR"),
-  est_digits = 3, p_digits = 4, latex_output = FALSE,
+  est_digits = 3, p_digits = 4, output_type = NULL,
   sig_alpha = 0.05, background = "yellow", verbose = FALSE, ...)
 }
 \arguments{
@@ -33,11 +33,11 @@ run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
 
 \item{p_digits}{number of digits to round p values (default is 4)}
 
-\item{latex_output}{will this table go into a latex output (making special charaters latex friendly)}
+\item{output_type}{output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)}
 
-\item{sig_alpha}{the defined significance level for highlighting. Default = 0.05 (Only used if latex_output = TRUE)}
+\item{sig_alpha}{the defined significance level for highlighting. Default = 0.05 (Only used if output_type not NULL)}
 
-\item{background}{background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if latex_output = TRUE)}
+\item{background}{background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if output_type not NULL)}
 
 \item{verbose}{a logical variable indicating if warnings and messages should be displayed. Default FALSE.}
 

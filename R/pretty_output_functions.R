@@ -275,13 +275,14 @@ stat_paste = function(stat1, stat2 = NULL, stat3 = NULL, digits = 0, trailing_ze
 #'
 #' @param pvalues numeric vector of raw p-values to be formatted
 #' @param digits number of digits to round to; values with zeros past this number of digits are truncated
+#' @param missing_char character string that will replace missing values from the p-value vector. Default = "---"
+#' @param include_p TRUE or FALSE: set to TRUE to print "p = " before each p-value
+#' @param trailing_zeros TRUE or FALSE: default = TRUE, p-values are formatted with trailing zeros to the defined number of digits (i.e. 0.100 instead of 0.1 if digits= 3)
+#' @param output_type output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)
 #' @param bold TRUE or FALSE: set to TRUE to bold p-values < the defined significance level
 #' @param italic TRUE or FALSE: set to TRUE to italicize p-values < the defined significance level
 #' @param background highlight color for p-values < the defined significance level. Default = NULL (no highlighting)
 #' @param sig_alpha the defined significance level. Default = 0.05
-#' @param missing_char character string that will replace missing values from the p-value vector. Default = "---"
-#' @param include_p TRUE or FALSE: set to TRUE to print "p = " before each p-value
-#' @param trailing_zeros TRUE or FALSE: default = TRUE, p-values are formatted with trailing zeros to the defined number of digits (i.e. 0.100 instead of 0.1 if digits = 3)
 #'
 #' @return Vector of transformed p-values for table output
 #'
@@ -308,12 +309,17 @@ stat_paste = function(stat1, stat2 = NULL, stat3 = NULL, digits = 0, trailing_ze
 #' @export
 
 
-pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, background = NULL, sig_alpha = 0.05, missing_char = '---', include_p = FALSE, trailing_zeros = TRUE){
+pretty_pvalues = function(pvalues, digits = 3, missing_char = '---', include_p = FALSE, trailing_zeros = TRUE, output_type = NULL, bold = FALSE, italic = FALSE, background = NULL, sig_alpha = 0.05){
   
   .check_numeric_input(pvalues, lower_bound = 0, upper_bound = 1)
   .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
   .check_numeric_input(digits, lower_bound = 1, upper_bound = 14, scalar = TRUE, whole_num = TRUE)
-  
+  if (!is.null(output_type) && !output_type %in% c('latex','html'))
+    stop('"output_type" must be either NULL, "latex", or "html"')
+  # Using Latex if user didn't specify 'output_type'
+  if (is.null(output_type) & (bold == TRUE | italic == TRUE | !is.null(background)))
+    output_type = 'latex'
+
   #Need to set options for no scientific notation, but set back to user preference on exit
   op <- options()
   options(scipen = 10)
@@ -336,7 +342,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
   if (include_p) pvalues_new <- ifelse(pvalues_new < lower_cutoff, paste0('p',  pvalues_new), paste0('p=',  pvalues_new))
   
   # formatting
-  if (bold == TRUE | italic == TRUE | !is.null(background)) pvalues_new[sig_p] = kableExtra::cell_spec(pvalues_new[sig_p], format = "latex", bold = bold, italic = italic, background = background, escape = FALSE)
+  if ((bold == TRUE | italic == TRUE | !is.null(background))) pvalues_new[sig_p] = kableExtra::cell_spec(pvalues_new[sig_p], format = output_type, bold = bold, italic = italic, background = background, escape = FALSE)
   
   pvalues_new
 }
@@ -355,10 +361,10 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @param overall_p_test_stat "Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova. Ignored for lm fits.
 #' @param est_digits number of digits to round OR or HR to (default is 3)
 #' @param p_digits number of digits to round p values (default is 4)
-#' @param latex_output will this table go into a latex output (making special charaters latex friendly)
-#' @param sig_alpha the defined significance level for highlighting. Default = 0.05 (Only used if latex_output = TRUE)
-#' @param background background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if latex_output = TRUE)
-#' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic}) (Only used if latex_output = TRUE)
+#' @param output_type output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)
+#' @param sig_alpha the defined significance level for highlighting. Default = 0.05 (Only used if output_type is not NULL)
+#' @param background background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if output_type is not NULL)
+#' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic}) (Only used if output_type is not NULL)
 #' 
 #' @details 
 #' 
@@ -410,7 +416,7 @@ pretty_pvalues = function(pvalues, digits = 3, bold = FALSE, italic = FALSE, bac
 #' @export
 
 
-pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald', 'LR'), title_name = NULL, conf_level = 0.95, est_digits = 3, p_digits = 4, latex_output =FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald', 'LR'), title_name = NULL, conf_level = 0.95, est_digits = 3, p_digits = 4, output_type = NULL, sig_alpha = 0.05, background = 'yellow', ...) {
   overall_p_test_stat <- match.arg(overall_p_test_stat)
   .check_numeric_input(est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
@@ -442,11 +448,12 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
   
   neat_fit = fit %>% broom::tidy(conf.int = TRUE, exponentiate = exp_output, conf.level = conf_level) 
   
-  if (latex_output) {
+  if (!is.null(output_type)) {
     # P value highlighting if using for pdf output (latex)
-    neat_fit$p.label = pretty_pvalues(neat_fit$p.value, digits = p_digits, trailing_zeros = TRUE, sig_alpha = sig_alpha, background = background, ...) 
+    neat_fit$p.label = pretty_pvalues(neat_fit$p.value, digits = p_digits, trailing_zeros = TRUE, sig_alpha = sig_alpha, 
+                                      output_type = output_type, background = background, ...) 
   } else {
-    neat_fit$p.label = pretty_pvalues(neat_fit$p.value, digits = p_digits, trailing_zeros = TRUE)
+    neat_fit$p.label = pretty_pvalues(neat_fit$p.value, digits = p_digits, trailing_zeros = TRUE, output_type = NULL)
   }
   
   neat_fit <- neat_fit %>%
@@ -475,11 +482,11 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
     dplyr::mutate(
       est.label = ifelse(is.na(est), "1.0 (Reference)",
                          stat_paste(est, conf.low, conf.high, digits = est_digits, trailing_zeros = TRUE)),
-      p.label = ifelse(is.na(p.label), ifelse(latex_output, '---', '-'), p.label)
+      p.label = ifelse(is.na(p.label), ifelse(!is.null(output_type) && output_type == 'latex', '---', '-'), p.label)
     ) %>%
     dplyr::select(name, Level = value, Est_CI = est.label, `P Value` = p.label) %>%
     dplyr::arrange(factor(name, levels = var_names)) %>% 
-    dplyr::rename(!!paste0(est_name, paste0(' (', round_away_0(conf_level, 2) * 100, ifelse(latex_output, '\\', '')), '% CI)') := Est_CI)
+    dplyr::rename(!!paste0(est_name, paste0(' (', round_away_0(conf_level, 2) * 100, ifelse(!is.null(output_type) && output_type == 'latex', '\\', '')), '% CI)') := Est_CI)
   
   # Dropping extra variable names (for overall p merging)
   neat_fit <- neat_fit %>%
@@ -497,12 +504,13 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
     type3_tests <- dplyr::full_join(broom::tidy(car::Anova(fit, type = 'III', test.statistic = overall_p_test_stat)),
                                     overall_vars_needed, by = c('term' = 'name'))
     
-    if (latex_output) {
+    if (!is.null(output_type)) {
       # P value highlighting if using for pdf output (latex)
       type3_tests$overall.p.label = pretty_pvalues(type3_tests$p.value, digits = p_digits, 
-                                                   trailing_zeros = TRUE, sig_alpha = sig_alpha, background = background, ...) 
+                                                   trailing_zeros = TRUE, output_type = output_type, 
+                                                   sig_alpha = sig_alpha, background = background, ...) 
     } else {
-      type3_tests$overall.p.label = pretty_pvalues(type3_tests$p.value, digits = p_digits, trailing_zeros = TRUE)
+      type3_tests$overall.p.label = pretty_pvalues(type3_tests$p.value, digits = p_digits, trailing_zeros = TRUE, output_type = NULL)
     }
     
     type3_tests <- type3_tests %>% 
@@ -540,9 +548,9 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' @param overall_p_test_stat "Wald" (default) or "LR"; the test.statistic to pass through to the test.statistic param in car::Anova. Ignored for lm fits.
 #' @param est_digits number of digits to round OR or HR to (default is 3)
 #' @param p_digits number of digits to round p values (default is 4)
-#' @param latex_output will this table go into a latex output (making special charaters latex friendly)
-#' @param sig_alpha the defined significance level for highlighting. Default = 0.05 (Only used if latex_output = TRUE)
-#' @param background background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if latex_output = TRUE)
+#' @param output_type output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)
+#' @param sig_alpha the defined significance level for highlighting. Default = 0.05 (Only used if output_type not NULL)
+#' @param background background color of significant values, or no highlighting if NULL. Default is "yellow" (Only used if output_type not NULL)
 #' @param verbose a logical variable indicating if warnings and messages should be displayed. Default FALSE.
 #' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})
 #
@@ -604,12 +612,14 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' 
 #' @export
 #' 
-run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, event_level = NULL, title_name = NULL, fail_if_warning = TRUE, conf_level = 0.95, overall_p_test_stat = c('Wald', 'LR'), est_digits = 3, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', verbose = FALSE, ...) {
+run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, event_level = NULL, title_name = NULL, fail_if_warning = TRUE, conf_level = 0.95, overall_p_test_stat = c('Wald', 'LR'), est_digits = 3, p_digits = 4, output_type = NULL, sig_alpha = 0.05, background = 'yellow', verbose = FALSE, ...) {
   overall_p_test_stat <- match.arg(overall_p_test_stat)
   .check_numeric_input(est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
   .check_numeric_input(conf_level, lower_bound = 0, upper_bound = 1, scalar = TRUE)
+  if (!is.null(output_type) && !output_type %in% c('latex','html'))
+    stop('"output_type" must be either NULL, "latex", or "html"')
   if (!all(x_in %in% colnames(model_data)))
     stop('All "x_in" (',paste0(x_in, collapse = ', '), ') must be in the "model_data" dataset')
   if (length(y_in) != 1) stop('"y_in" must be length of 1')
@@ -684,7 +694,7 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, eve
     n_info <- paste0('n=',tmp_fit$n,' (',tmp_fit$nevent,')')
   }
   
-  tmp_output <- pretty_model_output(fit = tmp_fit, model_data = model_data, title_name = title_name, conf_level = conf_level, overall_p_test_stat = overall_p_test_stat, est_digits = est_digits, p_digits = p_digits, latex_output = latex_output, sig_alpha = sig_alpha, background = background, ...)
+  tmp_output <- pretty_model_output(fit = tmp_fit, model_data = model_data, title_name = title_name, conf_level = conf_level, overall_p_test_stat = overall_p_test_stat, est_digits = est_digits, p_digits = p_digits,  output_type =  output_type, sig_alpha = sig_alpha, background = background, ...)
   tmp_output <- dplyr::bind_cols(tmp_output, n =  c(n_info, rep("", nrow(tmp_output) - 1)))
   
   if (!is.null(event_in)) names(tmp_output)[names(tmp_output) == 'n'] <- 'n (events)'
@@ -715,7 +725,7 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, eve
 #' @param surv_est_prefix prefix to use in survival estimate names. Default is Time (i.e. Time:5, Time:10,...)
 #' @param surv_est_digits number of digits to round p values for survival estimates for specified times
 #' @param median_est_digits number of digits to round p values for Median Survival Estimates
-#' @param latex_output will this table go into a latex output (making special charaters latex friendly)
+#' @param output_type output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)
 #' 
 #' @details 
 #' Currently works with multiple strata in the fit (i.e. \code{survfit(Surv(time, event) ~ x1 + x2)}), although level and \code{Group} column names may be off.
@@ -768,7 +778,7 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, eve
 #' 
 #' @export
 
-pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, latex_output =FALSE){
+pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name = NULL, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, output_type = NULL){
   # Input Checking
   if (!is.null(time_est)) {
     # Want to make sure time_est > 0
@@ -779,6 +789,8 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
   }
   .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
+  if (!is.null(output_type) && !output_type %in% c('latex','html'))
+    stop('"output_type" must be either NULL, "latex", or "html"')
   
   # If group name not specified but using strata, will use var name
   if (is.null(group_name) && !is.null(fit$strata)) 
@@ -788,7 +800,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
   tmp_summary <- summary(fit, time = time_est, extend = TRUE)
   tmp_surv_est <-  stat_paste(tmp_summary$surv, tmp_summary$lower, tmp_summary$upper, 
                               digits = surv_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
-  if (latex_output) tmp_surv_est <- gsub('\\%','\\\\%', tmp_surv_est)
+  if (!is.null(output_type) && output_type == 'latex') tmp_surv_est <- gsub('\\%','\\\\%', tmp_surv_est)
   
   if (!is.null(fit$strata)) {
     tmp_strata_levels <- substr(tmp_summary$strata, regexpr('=', tmp_summary$strata) + 1, nchar(as.vector(tmp_summary$strata)))
@@ -872,7 +884,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' @param surv_est_digits number of digits to round p values for survival estimates for specified times
 #' @param median_est_digits number of digits to round p values for Median Survival Estimates
 #' @param p_digits number of digits to round p values for Log-Rank p value
-#' @param latex_output will this table go into a latex output (making special charaters latex friendly)
+#' @param output_type output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)
 #' @param sig_alpha the defined significance level. Default = 0.05
 #' @param background background color of significant values, or no highlighting if NULL. Default is "yellow"
 #' @param ... other params to pass to \code{pretty_pvalues} (i.e. \code{bold} or \code{italic})
@@ -939,13 +951,15 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' 
 #' @export
 #' 
-run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, event_level = NULL, time_est = NULL, group_name = NULL, title_name = NULL, conf_level = .95, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, latex_output = FALSE, sig_alpha = 0.05, background = 'yellow', ...) {
+run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, event_level = NULL, time_est = NULL, group_name = NULL, title_name = NULL, conf_level = .95, surv_est_prefix = 'Time', surv_est_digits = 2, median_est_digits = 1, p_digits = 4, output_type = NULL, sig_alpha = 0.05, background = 'yellow', ...) {
   if (length(strata_in) != 1) stop('"strata_in" must be length of 1')
   .check_numeric_input(surv_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(median_est_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(p_digits, lower_bound = 1, upper_bound = 14, whole_num = TRUE, scalar = TRUE)
   .check_numeric_input(sig_alpha, lower_bound = 0, upper_bound = 1, scalar = TRUE)
   .check_numeric_input(conf_level, lower_bound = 0, upper_bound = 1, scalar = TRUE)
+  if (!is.null(output_type) && !output_type %in% c('latex','html'))
+    stop('"output_type" must be either NULL, "latex", or "html"')
   
   if (all(time_in != colnames(model_data)))
     stop('"time_in" must be in the "model_data" dataset')
@@ -981,15 +995,16 @@ run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, 
     tmp_pval <-  pchisq(survival::survdiff(formula = tmp_formula, data = model_data)$chi, 
                         length(survival::survdiff(formula = tmp_formula, data = model_data)$n) - 1, 
                         lower.tail = FALSE)
-    if (latex_output) {
-      tmp_p_info <- pretty_pvalues(tmp_pval, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, background = background, ...)
+    if (!is.null(output_type)) {
+      tmp_p_info <- pretty_pvalues(tmp_pval, digits = p_digits, sig_alpha = sig_alpha, trailing_zeros = TRUE, 
+                                   output_type = output_type, background = background, ...)
     } else {
-      tmp_p_info <- pretty_pvalues(tmp_pval, digits = p_digits, trailing_zeros = TRUE)
+      tmp_p_info <- pretty_pvalues(tmp_pval, digits = p_digits, trailing_zeros = TRUE, output_type = NULL)
     }
   }
   
   tmp_fit <- survival::survfit(tmp_formula, model_data, conf.int = conf_level)
-  tmp_km_output <- pretty_km_output(fit = tmp_fit, time_est = time_est, group_name = group_name, title_name = title_name, surv_est_prefix = surv_est_prefix, surv_est_digits = surv_est_digits, median_est_digits = median_est_digits, latex_output = latex_output)
+  tmp_km_output <- pretty_km_output(fit = tmp_fit, time_est = time_est, group_name = group_name, title_name = title_name, surv_est_prefix = surv_est_prefix, surv_est_digits = surv_est_digits, median_est_digits = median_est_digits, output_type = output_type)
   
   if (is.na(strata_in)) 
     tmp_km_output else 

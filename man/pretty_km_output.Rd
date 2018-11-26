@@ -6,7 +6,7 @@
 \usage{
 pretty_km_output(fit, time_est = NULL, group_name = NULL,
   title_name = NULL, surv_est_prefix = "Time", surv_est_digits = 2,
-  median_est_digits = 1, latex_output = FALSE)
+  median_est_digits = 1, output_type = NULL)
 }
 \arguments{
 \item{fit}{survfit object (with or without single strata variable)}
@@ -23,7 +23,7 @@ pretty_km_output(fit, time_est = NULL, group_name = NULL,
 
 \item{median_est_digits}{number of digits to round p values for Median Survival Estimates}
 
-\item{latex_output}{will this table go into a latex output (making special charaters latex friendly)}
+\item{output_type}{output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)}
 }
 \value{
 A tibble with: \code{Name} (if provided), \code{Group} (if strata variable in fit), \code{Level} (if strata variable in fit), \code{Median Estimate}, \code{Time:X} (Survival estimates for each time provided, if any). In no strata variable tibble is one row, otherwise nrows = number of strata levels.

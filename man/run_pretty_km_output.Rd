@@ -8,7 +8,7 @@ run_pretty_km_output(strata_in = NA, model_data, time_in, event_in,
   event_level = NULL, time_est = NULL, group_name = NULL,
   title_name = NULL, conf_level = 0.95, surv_est_prefix = "Time",
   surv_est_digits = 2, median_est_digits = 1, p_digits = 4,
-  latex_output = FALSE, sig_alpha = 0.05, background = "yellow", ...)
+  output_type = NULL, sig_alpha = 0.05, background = "yellow", ...)
 }
 \arguments{
 \item{strata_in}{name of strata variable, or NA (default) if no strata desired}
@@ -37,7 +37,7 @@ run_pretty_km_output(strata_in = NA, model_data, time_in, event_in,
 
 \item{p_digits}{number of digits to round p values for Log-Rank p value}
 
-\item{latex_output}{will this table go into a latex output (making special charaters latex friendly)}
+\item{output_type}{output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)}
 
 \item{sig_alpha}{the defined significance level. Default = 0.05}
 
