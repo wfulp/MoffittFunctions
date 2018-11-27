@@ -410,7 +410,6 @@ pretty_pvalues = function(pvalues, digits = 3, missing_char = '---', include_p =
 #' kableExtra::kable(my_output, 'html') %>% 
 #'     kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack')
 #'   
-#' @import car
 #' @importFrom Hmisc label label<-
 #' 
 #' @export
