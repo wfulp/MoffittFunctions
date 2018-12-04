@@ -10,6 +10,7 @@ output:
     toc: true
     toc_depth: 2
     number_sections: true
+    keep_tex: true
 header-includes:
   - \hypersetup{colorlinks=true, linkcolor=blue}
   - \usepackage{booktabs}
@@ -282,7 +283,7 @@ vars_to_run = c('Age_At_Diagnosis', 'Gender', 'Clinical_Stage_Grouped', 'Histolo
 linear_univariate_output <- purrr::map_dfr(
   vars_to_run, run_pretty_model_output, model_data = Bladder_Cancer, 
   y_in = 'Surgery_Year', event_in = NULL, event_level = NULL, 
-  latex_output = TRUE) 
+  output_type = 'latex') 
 
 #Use kableExtra to make fancy output
 kableExtra::kable(
@@ -300,7 +301,7 @@ kableExtra::kable(
 # Using run_pretty_model_output() for a multivariable linear regression model
 linear_multivariable_output <- run_pretty_model_output(
   x_in = vars_to_run, model_data = Bladder_Cancer, y_in = 'Surgery_Year', 
-  event_in = NULL, event_level = NULL, latex_output = TRUE)
+  event_in = NULL, event_level = NULL, output_type = 'latex')
 
 #Use kableExtra to make fancy output
 kableExtra::kable(
@@ -341,7 +342,7 @@ vars_to_run = c('Age_At_Diagnosis', 'Gender', 'Clinical_Stage_Grouped', 'Histolo
 logistic_univariate_output <- purrr::map_dfr(
   vars_to_run, run_pretty_model_output, model_data = Bladder_Cancer, 
   y_in = 'Any_Downstaging', event_in = NULL, event_level = 'Downstaging', 
-  latex_output = TRUE) 
+  output_type = 'latex') 
 
 #Use kableExtra to make fancy output
 kableExtra::kable(
@@ -358,7 +359,7 @@ kableExtra::kable(
 # Using run_pretty_model_output() for a multivariable logistic regression model
 logistic_multivariable_output <- run_pretty_model_output(
   x_in = vars_to_run, model_data = Bladder_Cancer, y_in = 'Any_Downstaging', 
-  event_in = NULL, event_level = 'Downstaging', latex_output = TRUE)
+  event_in = NULL, event_level = 'Downstaging', output_type = 'latex')
 
 #Use kableExtra to make fancy output
 kableExtra::kable(
@@ -401,7 +402,7 @@ vars_to_run = c('Age_At_Diagnosis', 'Gender', 'Clinical_Stage_Grouped', 'Histolo
 cox_univariate_output <- purrr::map_dfr(
   vars_to_run, run_pretty_model_output, model_data = Bladder_Cancer, 
   y_in = 'Survival_Months', event_in = 'Vital_Status', event_level = 'Dead', 
-  latex_output = TRUE) 
+  output_type = 'latex') 
 
 #Use kableExtra to make fancy output
 kableExtra::kable(
@@ -418,7 +419,7 @@ kableExtra::kable(
 # Using run_pretty_model_output() for a multivariable Cox regression model
 cox_multivariable_output <- run_pretty_model_output(
   x_in = vars_to_run, model_data = Bladder_Cancer, y_in = 'Survival_Months', 
-  event_in = 'Vital_Status', event_level = 'Dead', latex_output = TRUE)
+  event_in = 'Vital_Status', event_level = 'Dead', output_type = 'latex')
 
 #Use kableExtra to make fancy output
 kableExtra::kable(
@@ -467,7 +468,7 @@ km_output <- purrr::map_dfr(
   vars_to_run, run_pretty_km_output, model_data = Bladder_Cancer, 
   time_in = 'Survival_Months', event_in = 'Vital_Status', event_level = 'Dead', 
   time_est = c(24,60), surv_est_prefix = 'Month', p_digits = 5, 
-  latex_output = TRUE) %>% 
+  output_type = 'latex') %>% 
   select(Group, Level, everything())
 
 #Finally use kableExtra to make fancy output

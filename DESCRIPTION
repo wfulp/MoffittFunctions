@@ -1,6 +1,6 @@
 Package: MoffittFunctions
 Title: Moffitt Functions
-Version: 0.1.22
+Version: 0.1.23
 Authors@R: c(person("Jimmy", "Fulp",  email = "William.Fulp@moffitt.org", role = c("aut", "cre")),
              person("Ram", "Thapa",  email = "Ram.Thapa@moffitt.org", role = "aut"),
              person("Zachary", "Thompson",  email = "Zachary.Thompson@moffitt.org", role = "aut")
