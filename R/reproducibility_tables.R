@@ -133,9 +133,10 @@ get_session_info <- function(){
     value = username,
     stringsAsFactors = FALSE)
   
-  gitremote <-  substr(remote <- suppressWarnings(system("git remote -v", intern = TRUE))[1],
-                       regexpr("\t", remote) + 1,
-                       regexpr(" ", remote) - 1)
+  gitremoteorg <- tryCatch(system("git remote -v", intern = TRUE)[1], error = function(c) '', warning = function(c) '')
+  gitremote <-  substr(gitremoteorg,
+                       regexpr("\t", gitremoteorg) + 1,
+                       regexpr(" ", gitremoteorg) - 1)
   
   if (is.na(gitremote) || gitremote == "" || grepl('fatal', gitremote)) {
     # No Remote Connection, so just give absolute path
