@@ -444,7 +444,6 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
   if (any(var_labels == ''))
     var_labels[var_labels == ''] <- gsub('_', ' ', var_names[var_labels == ''])
   
-  
   neat_fit = fit %>% broom::tidy(conf.int = TRUE, exponentiate = exp_output, conf.level = conf_level) 
   
   if (!is.null(output_type)) {
@@ -459,7 +458,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
     dplyr::select(variable = term, est = estimate, p.label, p.value, conf.low, conf.high) %>%
     dplyr::filter(variable != "(Intercept)")
   
-  
+
   if (length(fit$xlevels) > 0) {
     all_levels = fit$xlevels %>% tibble::enframe() %>% tidyr::unnest() %>%
       dplyr::mutate(variable = paste0(name, value))
@@ -476,7 +475,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
         value = ''
       )
   }
-  
+
   neat_fit <- neat_fit %>%
     dplyr::mutate(
       est.label = ifelse(is.na(est), "1.0 (Reference)",
@@ -486,7 +485,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
     dplyr::select(name, Level = value, Est_CI = est.label, `P Value` = p.label) %>%
     dplyr::arrange(factor(name, levels = var_names)) %>% 
     dplyr::rename(!!paste0(est_name, paste0(' (', round_away_0(conf_level, 2) * 100, ifelse(!is.null(output_type) && output_type == 'latex', '\\', '')), '% CI)') := Est_CI)
-  
+
   # Dropping extra variable names (for overall p merging)
   neat_fit <- neat_fit %>%
     dplyr::mutate(name_sub = ifelse(duplicated(name), '', name),
@@ -498,11 +497,11 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
   
   # Getting which vars we need overall tests for
   overall_vars_needed <- neat_fit %>% dplyr::group_by(name) %>% dplyr::summarise(run_var = n() > 2)
-  
+
   if (any(overall_vars_needed$run_var)) {
-    type3_tests <- dplyr::full_join(broom::tidy(car::Anova(fit, type = 'III', test.statistic = overall_p_test_stat)),
+    type3_tests <- dplyr::full_join(broom::tidy(suppressWarnings(car::Anova(fit, type = 'III', test.statistic = overall_p_test_stat))),
                                     overall_vars_needed, by = c('term' = 'name'))
-    
+
     if (!is.null(output_type)) {
       # P value highlighting if using for pdf output (latex)
       type3_tests$overall.p.label = pretty_pvalues(type3_tests$p.value, digits = p_digits, 
@@ -511,7 +510,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
     } else {
       type3_tests$overall.p.label = pretty_pvalues(type3_tests$p.value, digits = p_digits, trailing_zeros = TRUE, output_type = NULL)
     }
-    
+
     type3_tests <- type3_tests %>% 
       dplyr::filter(term != "(Intercept)" & run_var) %>%
       dplyr::select(variable = term, `Overall P Value` = overall.p.label)
@@ -521,9 +520,9 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
   } else {
     neat_fit <- neat_fit %>% dplyr::mutate(`Overall P Value` = '')
   }
-  
+
   neat_fit <- neat_fit %>% dplyr::select(Variable, Level, dplyr::contains('CI'), dplyr::contains('P Value'))
-  
+
   # Adding Title in front, if given
   if (!is.null(title_name)) dplyr::bind_cols(Name = rep(title_name,nrow(neat_fit)), neat_fit) else neat_fit
 }  
@@ -681,10 +680,14 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, eve
     
     
     tmp_formula <- as.formula(paste("survival::Surv(",y_in,",",event_in,") ~ ", x_in_paste))
+    
     if (fail_if_warning) {
       tmp_fit <- tryCatch(expr = survival::coxph(tmp_formula, data = model_data), 
                           error = function(c) stop('Cox model with "',deparse(tmp_formula), '" formula has error(s) running'), 
-                          warning = function(c) stop('Cox model with "',deparse(tmp_formula), '" formula has warnings(s) running'))
+                          # Need special error checking because coxph throws some wanrings when warnPartialMatchArgs = TRUE
+                          warning = function(c) if (any(grepl('converge', c))) 
+                            stop('Cox model with "',deparse(tmp_formula), '" formula has warnings(s) running')
+                          else suppressWarnings(survival::coxph(tmp_formula, data = model_data)))
     } else {
       tmp_fit <- tryCatch(expr = survival::coxph(tmp_formula, data = model_data), 
                           error = function(c) stop('Cox model with "',deparse(tmp_formula), '" formula has error(s) running'))
@@ -796,7 +799,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
     group_name <- gsub('_', ' ', substr(names(fit$strata)[1], 1, regexpr('=', names(fit$strata)[1]) - 1))
   
   # Getting specific time_est estimates
-  tmp_summary <- summary(fit, time = time_est, extend = TRUE)
+  tmp_summary <- summary(fit, times = time_est, extend = TRUE)
   tmp_surv_est <-  stat_paste(tmp_summary$surv, tmp_summary$lower, tmp_summary$upper, 
                               digits = surv_est_digits, trailing_zeros = TRUE,  bound_char = '(', na_str_out = 'N.E.')
   if (!is.null(output_type) && output_type == 'latex') tmp_surv_est <- gsub('\\%','\\\\%', tmp_surv_est)
@@ -824,10 +827,10 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
   # Need to Replace times after last value
   if (!is.null(fit$strata)) {
     tmp_surv_est_info_long <- dplyr::full_join(tmp_surv_est_info_long, max_times, by = 'Level') %>% 
-      dplyr::mutate(Est = ifelse(Time > max_times, 'N.E.', Est)) %>% select(-max_times)
+      dplyr::mutate(Est = ifelse(Time > max_times, 'N.E.', Est)) %>% dplyr::select(-max_times)
   } else {
     tmp_surv_est_info_long <- bind_cols(tmp_surv_est_info_long, max_times = rep(max_times, nrow(tmp_surv_est_info_long))) %>% 
-      dplyr::mutate(Est = ifelse(Time > max_times, 'N.E.', Est)) %>% select(-max_times)
+      dplyr::mutate(Est = ifelse(Time > max_times, 'N.E.', Est)) %>% dplyr::select(-max_times)
   }
   names(tmp_surv_est_info_long)[ names(tmp_surv_est_info_long) == 'Time'] = surv_est_prefix
   
@@ -991,7 +994,7 @@ run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, 
       else group_name <- gsub('_', ' ', strata_in)
     }
     tmp_formula <- as.formula(paste("survival::Surv(",time_in,",",event_in,") ~ ", strata_in))
-    tmp_pval <-  pchisq(survival::survdiff(formula = tmp_formula, data = model_data)$chi, 
+    tmp_pval <-  pchisq(survival::survdiff(formula = tmp_formula, data = model_data)$chisq, 
                         length(survival::survdiff(formula = tmp_formula, data = model_data)$n) - 1, 
                         lower.tail = FALSE)
     if (!is.null(output_type)) {
