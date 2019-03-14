@@ -348,6 +348,53 @@ pretty_pvalues = function(pvalues, digits = 3, missing_char = '---', include_p =
 }
 
 
+#' pretty_pvalues() wrapper for compareGroups table
+#'
+#' pretty_pvalues_compareGroups() takes a createTable object created from compareGroups::createTable(), and applies pretty_pvalues() to all p value columns.
+#'
+#' @param compareGroups_table_obj createTable object created from compareGroups::createTable() function, with at least one p value column
+#' @param digits number of digits to round to; values with zeros past this number of digits are truncated
+#' @param include_p TRUE or FALSE: set to TRUE to print "p = " before each p-value
+#' @param trailing_zeros TRUE or FALSE: default = TRUE, p-values are formatted with trailing zeros to the defined number of digits (i.e. 0.100 instead of 0.1 if digits= 3)
+#' @param output_type output type, either NULL (default), "latex", or "html" (making special charaters latex friendly)
+#' @param bold TRUE or FALSE: set to TRUE to bold p-values < the defined significance level
+#' @param italic TRUE or FALSE: set to TRUE to italicize p-values < the defined significance level
+#' @param background highlight color for p-values < the defined significance level. Default = NULL (no highlighting)
+#' @param sig_alpha the defined significance level. Default = 0.05
+#'
+#' @return createTable object with rounding, formating, and highlighting of any p value column.
+#'
+#' @details
+#'
+#' This function is design specifically for input from compareGroups tables. Use \code{pretty_pvalues} directly when working with normal data.frames and other objects.
+#'
+#' @examples
+#'
+#' data("Bladder_Cancer")
+#' cycles_formula <- as.formula(Cycles_cat ~ Age_At_Diagnosis + Gender + Elix_Sum)
+#' cycles_compare <- compareGroups::compareGroups(cycles_formula, data = Bladder_Cancer)
+#' cycles_table <- compareGroups::createTable(cycles_compare, digits.p = 4, show.p.mul = T)
+#' cycles_table_fancy <- pretty_pvalues_compareGroups(cycles_table, background = 'yellow')
+#' 
+#' # Printing createTable object in report
+#' compareGroups::export2latex(cycles_table_fancy, size = 'footnotesize', label = 'tab:Variable-of-Interest-Table', caption = 'Comparing Variables to Number of Cycles', header.labels = c('p.overall' = 'Overall P'), landscape = F)
+#' 
+#' @export
+
+
+pretty_pvalues_compareGroups <- function(compareGroups_table_obj, digits = 3, include_p = FALSE, trailing_zeros = TRUE, output_type = NULL, bold = FALSE, italic = FALSE, background = NULL, sig_alpha = 0.05){
+  if (class(compareGroups_table_obj) != 'createTable') stop("'compareGroups_table_obj' must be a createTable class (output of compareGroups::createTable() function)")
+  
+  vars_to_adjust <- colnames(compareGroups_table_obj$descr)[grep('p\\.', colnames(compareGroups_table_obj$descr))]
+  
+  for (i in vars_to_adjust) {
+    temp_values <- compareGroups_table_obj$descr[,i]
+    temp_values[temp_values == '.'] <- ''
+    numeric_values <- as.numeric(sub('<', '', temp_values))
+    compareGroups_table_obj$descr[,i] <- pretty_pvalues(numeric_values, digits = digits, missing_char = '', include_p = include_p, trailing_zeros = trailing_zeros, output_type = output_type, bold = bold, italic = italic, background = background, sig_alpha = sig_alpha)
+  }
+  compareGroups_table_obj
+}
 
 
 #' Fancy Table Output of Linear, Logistic, and Cox Models

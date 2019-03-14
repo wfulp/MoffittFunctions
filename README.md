@@ -1,22 +1,42 @@
 MoffittFunctions
 =============
 
-A collection of Moffitt functions for annotation, statistical calculations, data manipulation, etc.
 
-## Installation
+MoffittFunctions is a collection of useful functions designed to assist in analysis and creation of professional reports. The current MoffittFunctions functions can be broken down to the following sections:
 
-First make sure you have SSH keys set up, then type:
+- Testing Functions
+  - two_samp_bin_test
+  - two_samp_cont_test
+  - cor_test
+- Fancy Output Functions
+  - pretty_pvalues
+  - pretty_pvalues_compareGroups
+  - stat_paste
+  - paste_tbl_grp
+  - pretty_model_output
+  - run_pretty_model_output
+  - pretty_km_output
+  - run_pretty_km_output
+- Utility Functions
+  - round_away_0
+  - get_session_info
+  - get_full_name
+- Example Dataset
+  - Bladder_Cancer
+
+
+### Getting Started
 
 ```r
-# If installing from GitHub
-remotes::install_git("https://github.com/wfulp/MoffittFunctions", build_opts = NULL)
+# Installing from GitHub
+remotes::install_git("https://github.com/wfulp/MoffittFunctions")
 
-
-# If installing from Moffitt GitLab
-cred = git2r::cred_ssh_key(
-    publickey = "MYPATH/.ssh/id_rsa.pub", 
-    privatekey = "MYPATH/.ssh/id_rsa")
-
-remotes::install_git("git@gitlab.moffitt.usf.edu:ReproducibleResearch/MoffittFunctions.git", 
-                      credentials = cred, build_opts = c("--no-resave-data"))
+# Loading MoffittFunctions and Example Dataset
+library(MoffittFunctions)
+data("Bladder_Cancer")
 ```
+
+#### MoffittTemplates Package
+
+The [MoffittTemplates](https://github.com/wfulp/MoffittTemplates) package makes extensive use of the `MoffittFunctions` package, and is a great way get started making professional statistical reports.
+
