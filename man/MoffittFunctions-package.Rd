@@ -9,6 +9,14 @@
 Statistical, data processing, and annotation functions for data analysis.
 Many functions for producing fancey tables in reports
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/wfulp/MoffittFunctions}
+  \item Report bugs at \url{https://github.com/wfulp/MoffittFunctions/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Jimmy Fulp \email{William.Fulp@moffitt.org}
 
