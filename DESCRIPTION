@@ -1,14 +1,24 @@
 Package: MoffittFunctions
 Title: Moffitt Functions
 Version: 1.0.0
-Authors@R: c(person("Jimmy", "Fulp",  email = "William.Fulp@moffitt.org", role = c("aut", "cre")),
-             person("Ram", "Thapa",  email = "Ram.Thapa@moffitt.org", role = "aut"),
-             person("Zachary", "Thompson",  email = "Zachary.Thompson@moffitt.org", role = "aut")
-             )
-Authors: William (Jimmy) Fulp, Ram Thapa, Zachary Thompson
-Description: Statistical, data processing, and annotation functions for Moffitt Biostat.
+Authors@R: 
+    c(person(given = "Jimmy",
+             family = "Fulp",
+             role = c("aut", "cre"),
+             email = "William.Fulp@moffitt.org"),
+      person(given = "Ram",
+             family = "Thapa",
+             role = "aut",
+             email = "Ram.Thapa@moffitt.org"),
+      person(given = "Zachary",
+             family = "Thompson",
+             role = "aut",
+             email = "Zachary.Thompson@moffitt.org"))
+Description: Statistical, data processing, and annotation
+    functions for Moffitt Biostat.
 License: GPL-3
-LazyData: true
+URL: https://github.com/wfulp/MoffittFunctions
+BugReports: https://github.com/wfulp/MoffittFunctions/issues
 Imports: 
     broom (>= 0.5.0),
     car,
@@ -27,8 +37,11 @@ Imports:
     tibble,
     tidyr
 Suggests: 
-    testthat,
-    rmarkdown
-RoxygenNote: 6.1.1
+    rmarkdown,
+    testthat
+VignetteBuilder: 
+    knitr
+Authors: William (Jimmy) Fulp, Ram Thapa, Zachary Thompson
 Encoding: UTF-8
-VignetteBuilder: knitr
+LazyData: true
+RoxygenNote: 6.1.1
