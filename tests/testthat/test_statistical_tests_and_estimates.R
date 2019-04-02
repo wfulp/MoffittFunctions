@@ -73,10 +73,10 @@ test_that("two_samp_cont_test testing various options (no errors)", {
 
   # Wilcox Unpaired
   expect_identical(object = two_samp_cont_test(x = x, y = y, method = 'wilcox', paired = FALSE, verbose = T),
-               expected = coin::pvalue(coin::wilcox_test(x~factor(y),distribution = "exact", ties.method = "mid-ranks")))
+               expected = as.numeric(coin::pvalue(coin::wilcox_test(x~factor(y),distribution = "exact", ties.method = "mid-ranks"))))
   # Wilcox Paired
   expect_identical(object = two_samp_cont_test(x = x[-(11:12)], y = y[-(11:12)], method = 'wilcox', paired = TRUE, verbose = T),
-               expected = coin::pvalue(coin::wilcoxsign_test(x[1:10]~x[13:22],distribution = "exact")))
+               expected = as.numeric(coin::pvalue(coin::wilcoxsign_test(x[1:10]~x[13:22],distribution = "exact"))))
   # T-Test Unpaired
   #t.test(x[1:10], x[13:22], paired=F, var.equal = F)$p.value
   expect_identical(object = two_samp_cont_test(x = x, y = y, method = 't', paired = FALSE, verbose = T),
