@@ -332,7 +332,7 @@ pretty_pvalues = function(pvalues, digits = 3, missing_char = '---', include_p =
   below_cutoff_p = which(pvalues < lower_cutoff)
   sig_p = which(pvalues < sig_alpha)
   
-  if (trailing_zeros) pvalues_new = round_away_0(pvalues, trailing_zeros = TRUE, digits = digits) else pvalues_new = as.character(round_away_0(pvalues, trailing_zeros = F, digits))
+  if (trailing_zeros) pvalues_new = round_away_0(pvalues, trailing_zeros = TRUE, digits = digits) else pvalues_new = as.character(round_away_0(pvalues, trailing_zeros = FALSE, digits))
   
   ## manipulate and assign pvalues as characters to output pvalue vector
   pvalues_new[missing_p] = missing_char
@@ -373,11 +373,11 @@ pretty_pvalues = function(pvalues, digits = 3, missing_char = '---', include_p =
 #' data("Bladder_Cancer")
 #' cycles_formula <- as.formula(Cycles_cat ~ Age_At_Diagnosis + Gender + Elix_Sum)
 #' cycles_compare <- compareGroups::compareGroups(cycles_formula, data = Bladder_Cancer)
-#' cycles_table <- compareGroups::createTable(cycles_compare, digits.p = 4, show.p.mul = T)
+#' cycles_table <- compareGroups::createTable(cycles_compare, digits.p = 4, show.p.mul = TRUE)
 #' cycles_table_fancy <- pretty_pvalues_compareGroups(cycles_table, background = 'yellow')
 #' 
 #' # Printing createTable object in report
-#' compareGroups::export2latex(cycles_table_fancy, size = 'footnotesize', label = 'tab:Variable-of-Interest-Table', caption = 'Comparing Variables to Number of Cycles', header.labels = c('p.overall' = 'Overall P'), landscape = F)
+#' compareGroups::export2latex(cycles_table_fancy, size = 'footnotesize', label = 'tab:Variable-of-Interest-Table', caption = 'Comparing Variables to Number of Cycles', header.labels = c('p.overall' = 'Overall P'), landscape = FALSE)
 #' 
 #' @export
 
@@ -543,7 +543,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
   ## Type III Overall variable tests
   
   # Getting which vars we need overall tests for
-  overall_vars_needed <- neat_fit %>% dplyr::group_by(name) %>% dplyr::summarise(run_var = n() > 2)
+  overall_vars_needed <- neat_fit %>% dplyr::group_by(name) %>% dplyr::summarise(run_var = dplyr::n() > 2)
 
   if (any(overall_vars_needed$run_var)) {
     type3_tests <- dplyr::full_join(broom::tidy(suppressWarnings(car::Anova(fit, type = 'III', test.statistic = overall_p_test_stat))),
@@ -585,7 +585,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' @param x_in name of x variables in model (can be vector of x names)
 #' @param model_data data.frame or tibble that contains \code{x_in}, \code{time_in}, and \code{event_in} variables
 #' @param y_in name of outcome measure for logistic and linear model, or name of time component in cox model
-#' @param event_in name of event status variable. Shouled be left NULL for logistic and linear models. If \code{event_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively.
+#' @param event_in name of event status variable. Shouled be left NULL for logistic and linear models. If \code{event_level} = NULL then this must be the name of a FALSE/TRUE or 0/1 variable, where FALSE or 0 are considered the censored level, respectively.
 #' @param event_level outcome variable event level for logistic model, and event status level for cox model.
 #' @param title_name title to use (will be repeated in first column)
 #' @param fail_if_warning Should program stop and give useful message if there is a warning message when running model (Default is TRUE)
@@ -627,7 +627,7 @@ pretty_model_output <- function(fit, model_data, overall_p_test_stat = c('Wald',
 #' run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', 
 #'      event_in = 'ybin3', event_level = 'Dead')
 #' run_pretty_model_output(x_in = c('x1','x2'), model_data = my_data, y_in = 'y', event_in = 'ybin')
-#' run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'ybin', event_in = NULL, verbose = T)
+#' run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'ybin', event_in = NULL, verbose = TRUE)
 #' run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'y', event_in = NULL)
 #' 
 #' # Multiple runs for different variables
@@ -713,15 +713,15 @@ run_pretty_model_output <- function(x_in, model_data, y_in, event_in = NULL, eve
     # Cox Model
     if (all(event_in != colnames(model_data))) 
       stop('"event_in" (',event_in, ') not in the "model_data" dataset')
-    if (length(unique(na.omit(model_data[,event_in, drop = T]))) > 2)
+    if (length(unique(na.omit(model_data[,event_in, drop = TRUE]))) > 2)
       stop('"event_in" (',event_in, ') must have only two levels')
     
     if (!is.null(event_level)) {
       if (all(unique(model_data[, event_in, drop = TRUE]) != event_level))
         stop('"event_level" (',event_level, ') not present in "event_in" (',event_in, ')')
-      model_data[,event_in] <- model_data[,event_in, drop = T] == event_level
+      model_data[,event_in] <- model_data[,event_in, drop = TRUE] == event_level
     } 
-    event_levels <- unique(model_data[,event_in, drop = T])
+    event_levels <- unique(model_data[,event_in, drop = TRUE])
     if (all(event_levels != TRUE))
       stop('"event_in" (',event_in, ') must have at least one event')
     
@@ -923,7 +923,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #' @param strata_in name of strata variable, or NA (default) if no strata desired
 #' @param model_data dataset that contains \code{strata_in}, \code{time_in}, and \code{event_in} variables
 #' @param time_in name of time variable component of outcome measure
-#' @param event_in name of event status variable. If \code{event_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively
+#' @param event_in name of event status variable. If \code{event_level} = NULL then this must be the name of a FALSE/TRUE or 0/1 variable, where FALSE or 0 are considered the censored level, respectively
 #' @param event_level event level for event status variable.
 #' @param time_est numerical vector of time estimates. If NULL (default) no time estimates are calculated
 #' @param group_name strata variable name. If NULL and strata exists then using variable
@@ -981,7 +981,7 @@ pretty_km_output <- function(fit, time_est = NULL, group_name = NULL, title_name
 #'    select(Group, Level, everything())
 #' 
 #' options(knitr.kable.NA = '')
-#' kableExtra::kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', 
+#' kableExtra::kable(bind_rows(km_info, km_info2), escape = FALSE, longtable = FALSE, booktabs = TRUE, linesep = '', 
 #'      caption = 'Survival Percentage Estimates at 5 and 10 Years') %>%
 #'   kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2) 
 #' 
@@ -1015,14 +1015,14 @@ run_pretty_km_output <- function(strata_in = NA, model_data, time_in, event_in, 
   
   if (all(event_in != colnames(model_data)))
     stop('"event_in" must be in the "model_data" dataset')
-  if (length(unique(na.omit(model_data[,event_in, drop = T]))) > 2)
+  if (length(unique(na.omit(model_data[,event_in, drop = TRUE]))) > 2)
     stop('"event_in" (',event_in, ') must have only two levels')
   if (!is.null(event_level)) {
     if (all(unique(model_data[, event_in, drop = TRUE]) != event_level))
       stop('"event_level" (',event_level, ') not present in "event_in" (',event_in, ')')
-    model_data[,event_in] <- model_data[,event_in, drop = T] == event_level
+    model_data[,event_in] <- model_data[,event_in, drop = TRUE] == event_level
   } 
-  event_levels <- unique(model_data[,event_in, drop = T])
+  event_levels <- unique(model_data[,event_in, drop = TRUE])
   if (all(event_levels != TRUE))
     stop('"event_in" (',event_in, ') must have at least one event')
   

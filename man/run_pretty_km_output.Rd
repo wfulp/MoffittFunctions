@@ -17,7 +17,7 @@ run_pretty_km_output(strata_in = NA, model_data, time_in, event_in,
 
 \item{time_in}{name of time variable component of outcome measure}
 
-\item{event_in}{name of event status variable. If \code{event_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively}
+\item{event_in}{name of event status variable. If \code{event_level} = NULL then this must be the name of a FALSE/TRUE or 0/1 variable, where FALSE or 0 are considered the censored level, respectively}
 
 \item{event_level}{event level for event status variable.}
 
@@ -90,7 +90,7 @@ km_info2 <- purrr::map_dfr(vars_to_run, run_pretty_km_output, model_data = my_da
    select(Group, Level, everything())
 
 options(knitr.kable.NA = '')
-kableExtra::kable(bind_rows(km_info, km_info2), escape = F, longtable = F, booktabs = TRUE, linesep = '', 
+kableExtra::kable(bind_rows(km_info, km_info2), escape = FALSE, longtable = FALSE, booktabs = TRUE, linesep = '', 
      caption = 'Survival Percentage Estimates at 5 and 10 Years') \%>\%
   kableExtra::collapse_rows(c(1:2), row_group_label_position = 'stack', headers_to_remove = 1:2) 
 

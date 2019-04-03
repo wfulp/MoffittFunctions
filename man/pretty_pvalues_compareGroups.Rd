@@ -42,10 +42,10 @@ This function is design specifically for input from compareGroups tables. Use \c
 data("Bladder_Cancer")
 cycles_formula <- as.formula(Cycles_cat ~ Age_At_Diagnosis + Gender + Elix_Sum)
 cycles_compare <- compareGroups::compareGroups(cycles_formula, data = Bladder_Cancer)
-cycles_table <- compareGroups::createTable(cycles_compare, digits.p = 4, show.p.mul = T)
+cycles_table <- compareGroups::createTable(cycles_compare, digits.p = 4, show.p.mul = TRUE)
 cycles_table_fancy <- pretty_pvalues_compareGroups(cycles_table, background = 'yellow')
 
 # Printing createTable object in report
-compareGroups::export2latex(cycles_table_fancy, size = 'footnotesize', label = 'tab:Variable-of-Interest-Table', caption = 'Comparing Variables to Number of Cycles', header.labels = c('p.overall' = 'Overall P'), landscape = F)
+compareGroups::export2latex(cycles_table_fancy, size = 'footnotesize', label = 'tab:Variable-of-Interest-Table', caption = 'Comparing Variables to Number of Cycles', header.labels = c('p.overall' = 'Overall P'), landscape = FALSE)
 
 }

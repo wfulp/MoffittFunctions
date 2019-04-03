@@ -17,7 +17,7 @@ run_pretty_model_output(x_in, model_data, y_in, event_in = NULL,
 
 \item{y_in}{name of outcome measure for logistic and linear model, or name of time component in cox model}
 
-\item{event_in}{name of event status variable. Shouled be left NULL for logistic and linear models. If \code{event_level} = NULL then this must be the name of a F/T or 0/1 variable, where F or 0 are considered the censored level, respectively.}
+\item{event_in}{name of event status variable. Shouled be left NULL for logistic and linear models. If \code{event_level} = NULL then this must be the name of a FALSE/TRUE or 0/1 variable, where FALSE or 0 are considered the censored level, respectively.}
 
 \item{event_level}{outcome variable event level for logistic model, and event status level for cox model.}
 
@@ -72,7 +72,7 @@ run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', event_in 
 run_pretty_model_output(x_in = 'x1', model_data = my_data, y_in = 'y', 
      event_in = 'ybin3', event_level = 'Dead')
 run_pretty_model_output(x_in = c('x1','x2'), model_data = my_data, y_in = 'y', event_in = 'ybin')
-run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'ybin', event_in = NULL, verbose = T)
+run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'ybin', event_in = NULL, verbose = TRUE)
 run_pretty_model_output(x_in = 'x2', model_data = my_data, y_in = 'y', event_in = NULL)
 
 # Multiple runs for different variables
